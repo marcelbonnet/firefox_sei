@@ -1,0 +1,3 @@
+#!/usr/local/bin/bash
+
+zip -r /tmp/sei_pgd.zip *.css *.html *.js manifest.json images
