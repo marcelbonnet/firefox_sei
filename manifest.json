@@ -7,7 +7,7 @@
     "description" : "Facita o preenchimento do Programa de Gestão de Desempenho do Governo Federal no Sistema de Processo Eletrônico (SEI).",
 
     "browser_action": {
-        "default_icon": "images/branco.png",
+        "default_icon": "images/google-docs.png",
         "default_title": "SEI PGD",
         "browser_style": true,
         "default_popup": "html/pgd.html"
@@ -18,7 +18,15 @@
 		"scripts": ["background.js"]
     },
 
+    "content_scripts": [
+        {
+          "matches": ["*://*.sei.anatel.gov.br/*"],
+          "js": ["js/sei_content.js"]
+        }
+    ],
 
+    "content_security_policy": "default-src 'self'",
+   
     "permissions": [
         "activeTab",
         "sessions",
