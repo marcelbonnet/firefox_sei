@@ -7,6 +7,63 @@
   </head>
 
 <body>
+
+  <fieldset>
+    <legend>Inclusão de Evento/Atividade</legend>
+    <table>
+      <tr>
+        <th>Início</th>
+        <td><input type="datetime-local" id="inicio"></td>
+      </tr>
+      <tr>
+        <th>Fim</th>
+        <td><input type="datetime-local" id="fim"></td>
+      </tr>
+      <tr>
+        <th>Recorrência</th>
+        <td> 
+          <input type="number" id="recorrente" value="0" min="0" max="366" step="1">
+          até
+          <input type="datetime-local" id="encerramento">
+        </td>
+      </tr>
+      <tr>
+        <th>Atividade</th>
+        <td>
+          <select id="atividade"></select>
+        </td>
+      </tr>
+      <tr>
+        <th>Duração</th>
+        <td>
+          <p><small>Calculada: <span id="spanDuracao"></span></small></p>
+          <p>
+            <select id="duracao"></select>
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <th>Sub Atividade</th>
+        <td>
+          <select id="subAtividade"></select>
+        </td>
+      </tr>
+      <tr>
+        <th>Descrição</th>
+        <td>
+          <textarea id="descricao" maxlength="500" rows="5" cols="40"></textarea>
+        </td>
+      </tr>
+      <tr>
+        <th>Nº SEI</th>
+        <td>---</td>
+      </tr>
+    </table>
+    <input type="button" class="button incluir_evento" value="Incluir">
+
+    <div id="flash"></div>
+  </fieldset>
+  
   <div id="popup-content">
     <input type="button" class="button teste" value="Testar">
     <input type="button" class="button listar" value="listar">
