@@ -16,7 +16,7 @@
     // beastImage.style.height = "100vh";
     // beastImage.className = "beastify-image";
     // document.body.appendChild(beastImage);
-    var div = document.querySelector("#divComandos")
+    var div = document.querySelector("div")
     var btn = document.createElement("button")
     btn.appendChild(document.createTextNode(valor))
     div.appendChild(btn)
@@ -28,9 +28,13 @@
    */
   browser.runtime.onMessage.addListener((message) => {
     if (message.command === "testar") {
-      seiTestar(message.valor);
-    } else if (message.command === "xxxxxx") {
-      //TODO
+      // seiTestar(message.valor);
+      console.debug("TESTE")
+      console.debug(message.valor)
+    } else if (message.command === "incluir_evento") {
+      console.debug("TESTE de incluir " + message.valor)
+      var getting = browser.runtime.getBackgroundPage();
+      
     }
   });
 
