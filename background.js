@@ -5,8 +5,7 @@
 
 const DB_NAME = 'pgd';
 const DB_VERSION = 1; // Use a long long for this value (don't use a float)
-const DB_TIPOS_TAREFAS = 'tipos_tarefas';
-const DB_TAREFAS = 'tarefas';
+// remove isso, já que preciso invocar na mão em outros arquivos
 const DB_PGD_ATIVIDADES = "pgd_atividades"
 const DB_PGD_DURACAO = "pgd_duracao"
 const DB_PGD_SUB_ATIVIDADES = "pgd_sub_atividades"
@@ -44,19 +43,24 @@ function openDb() {
     
 
     var store = evt.currentTarget.result.createObjectStore(
-      DB_TIPOS_TAREFAS, { keyPath: 'id', autoIncrement: true });
-    store.createIndex('codigo', 'codigo', { unique: false });
-    store.createIndex('atividade', 'atividade', { unique: true });
-    store.createIndex('descricao', 'descricao', { unique: false });
-    store.createIndex('minutos', 'minutos', { unique: false });
+      "eventos", { keyPath: 'id', autoIncrement: true });
+    store.createIndex('idx_evento', ['data_ini','data_fim','recorrencia'], { unique: true });
+    store.createIndex('idx_encerramento', 'encerramento', { unique: false });
+    store.createIndex('idx_atividade', 'atividade', { unique: false });
+    store.createIndex('idx_sub_atividade', 'sub_atividade', { unique: false });
+    store.createIndex('idx_duracao_evento', 'duracao', { unique: false });
+    store.createIndex('idx_descricao', 'descricao', { unique: false });
+    store.createIndex('idx_num_sei', 'num_sei', { unique: false });
 
     var store = evt.currentTarget.result.createObjectStore(
-      DB_TAREFAS, { keyPath: 'id', autoIncrement: true });
-    store.createIndex('data', 'data', { unique: false });
-    store.createIndex('atividade', 'atividade', { unique: false });
-    store.createIndex('minutos', 'minutos', { unique: false });
-    store.createIndex('descricao', 'descricao', { unique: false });
-    store.createIndex('numerosei', 'numerosei', { unique: false });
+      "diario", { keyPath: 'id', autoIncrement: true });
+    store.createIndex('idx_periodo_diario', ['data_ini','data_fim'], { unique: false });
+    store.createIndex('idx_atividade_diario', 'atividade', { unique: false });
+    store.createIndex('idx_sub_atividade_diario', 'sub_atividade', { unique: false });
+    store.createIndex('idx_duracao_diario', 'duracao', { unique: false });
+    store.createIndex('idx_descricao_diario', 'descricao', { unique: false });
+    store.createIndex('idx_num_sei_diario', 'num_sei', { unique: false });
+
   };
 }
 
@@ -308,8 +312,7 @@ browser.runtime.onMessage.addListener( async(request, sender, sendResponse) =>
 });
 
 
-function inserirPgdGIDS(){
-  var atividades = [
+var atividades = [
     ["Atividades Comuns - Atuar como Product Owner/Gestor de Solução de TI", "Administrar, conceber, planejar, discutir, acompanhar, avaliar, testar, homologar e demandar desenvolvimento."],
     ["Atividades Comuns - Atuar na proposição e aprovação de políticas, normativos e processos", "Planejar, elaborar, apresentar e obter aprovação de políticas, diretrizes, normativos e processos relacionados à Governança de TI, SIC, Sistemas, dados e Biblioteca."],
     ["Atividades Comuns - Elaborar, analisar e revisar arquivos, documentos ou demandas", "Elaborar, atualizar, analisar, revisar, ajustar conteúdo de processos, arquivos, estudos, projetos, planilhas (preços, custos, memórias de cálculo, etc), documentos (Memo, Ofício,etc), material (apresentações, dashboards, imagens e texto)."],
@@ -542,42 +545,110 @@ function inserirPgdGIDS(){
     ["1096_S_480_Especial","480","Sistemas - Investigar Erro"],
   ];
 
+function inserirPgdGIDS(){
   // console.error("DESLIGUEI A INSERÇÃO DE ATIV E SUB ATIV!!!!!!!");
+// debugger
+    indexedDB.open("pgd",1).onsuccess = function (evt) {
+      const idb = this.result;
+      const tx = idb.transaction("pgd_atividades", 'readwrite');
+      const store = tx.objectStore("pgd_atividades");
 
-  for(i=0; i<atividades.length; i++){
-    addPgdAtividade(atividades[i][0], atividades[i][1])
-  }
 
-  var cursor = dbSelect(DB_PGD_ATIVIDADES)
+      let req;
+      try {
+        // req = store.add(obj);
+        for(i=0; i<atividades.length; i++){
+          req = store.add({
+            atividade: atividades[i][0],
+            descricao: atividades[i][1],
+          })
+        }
+      } catch (e) {
+        console.error("Matriz Atividade " + e.error)
+        throw e;
+      }
+
+      req.onsuccess = function(event){
+        var key = event.target.result;
+        console.debug(atividades[i][0] +" #"+key);
+
+        // inicia insert de sub_atividades
+        indexedDB.open("pgd",1).onsuccess = function (event2) {
+          const idb2 = this.result;
+          const tx2 = idb2.transaction("pgd_sub_atividades", 'readwrite');
+          const store2 = tx2.objectStore("pgd_sub_atividades");
+
+          let lista = []
+
+          for(i=0; i<atividades.length; i++){
+            for(n=0; n<sub_atividades[i].length; n++){
+              var nome = sub_atividades[i][n]
+              if(nome != undefined && nome.length > 0){
+                lista.push({ 
+                    atividade_id: key,
+                    sub_atividade: nome,
+                  })
+              }
+            }
+          }
+          let req2;
+          try {
+            // req2 = store.add(obj);
+            for(pos=0; pos<lista.length; pos++)
+              store2.add(lista[pos])
+          } catch (e) {
+            console.error(nome + " => " + e.error);
+            throw e;
+          }
+
+          // req2.onsuccess = function(event){
+          //   var key = event.target.result;
+          //   console.debug(atividades[i][0] +" #"+key);
+          // }
+
+          // req2.onerror = function() {
+          //   console.error(atividades[i][0] + " => " + this.error);
+          // };
+          
+        };//indexedDB de sub atividades
+      }// fim req.sucess de atividades
+
+      req.onerror = function() {
+        console.error(i + " " + atividades[i][0] + " => " + this.error);
+      };
+      
+    };//indexedDB
+
+  // var cursor = dbSelect(DB_PGD_ATIVIDADES)
   // debugger //saporra de firefox faz cache. Tem que ligar o debugger pra conseguir rodar a merda do script de inserção abaixo
 
-  for(i=0; i<sub_atividades.length; i++){
-    var nome_atividade = atividades[i][0]
-    var id_atividade = 0
-    for(k=0; k<cursor.length; k++){
-      console.debug("cursor")
-      console.debug(cursor[k].atividade + " === " + nome_atividade)
-      if(cursor[k].atividade == nome_atividade){
-        id_atividade = cursor[k].id
-        break
-      }
-    }
+  // for(i=0; i<sub_atividades.length; i++){
+  //   var nome_atividade = atividades[i][0]
+  //   var id_atividade = 0
+  //   for(k=0; k<cursor.length; k++){
+  //     console.debug("cursor")
+  //     console.debug(cursor[k].atividade + " === " + nome_atividade)
+  //     if(cursor[k].atividade == nome_atividade){
+  //       id_atividade = cursor[k].id
+  //       break
+  //     }
+  //   }
 
-    for(n=0; n<sub_atividades[i].length; n++){
-      var nome = sub_atividades[i][n]
-      console.debug(nome_atividade + " #"+id_atividade+" => " + nome)
-      if(nome != undefined && nome.length > 0 && id_atividade>0)
-        addPgdSubAtividade(nome, id_atividade)
-    }
-  }// sub_atividades
+  //   for(n=0; n<sub_atividades[i].length; n++){
+  //     var nome = sub_atividades[i][n]
+  //     console.debug(nome_atividade + " #"+id_atividade+" => " + nome)
+  //     if(nome != undefined && nome.length > 0 && id_atividade>0)
+  //       addPgdSubAtividade(nome, id_atividade)
+  //   }
+  // }// sub_atividades
 
   // adiciona duração
-  for(n=0; n<duracao.length; n++){
-    for(i=0; i<cursor.length; i++){
-      if(cursor[i].atividade == duracao[n][2])
-        addPgdDuracao(duracao[n][0], parseInt(duracao[n][1]), cursor[i].id)
-    }
-  }
+  // for(n=0; n<duracao.length; n++){
+  //   for(i=0; i<cursor.length; i++){
+  //     if(cursor[i].atividade == duracao[n][2])
+  //       addPgdDuracao(duracao[n][0], parseInt(duracao[n][1]), cursor[i].id)
+  //   }
+  // }
 
   
 
