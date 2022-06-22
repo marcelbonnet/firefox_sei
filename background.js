@@ -117,7 +117,8 @@ function addPgdDuracao(codigo, duracao, atividade_id) {
 }
 
 // TODO fazer um select genérico + equivalente do SQL WHERE
-function dbSelect(table) {
+// essa função está uma bosta, com lixo para remover
+function dbSelect(table/*, callback*/) {
   store = getObjectStore(table, 'readonly');
 
   var req;
@@ -132,9 +133,10 @@ function dbSelect(table) {
   var i = 0;
   req = store.openCursor();
 
-  var res = []
   req.onsuccess = function(evt) {
+  // var resultado = function(evt) {
     var cursor = evt.target.result;
+    var res = []
 
     // If the cursor is pointing at something, ask for the data
     if (cursor) {
@@ -153,8 +155,10 @@ function dbSelect(table) {
     } else {
       console.log("No more entries");
     }
+    // callback(res)
+    // return res;
   };
-  return res;
+  // return await req;
 }
 
 
@@ -279,30 +283,29 @@ console.log("INICIADO")
 openDb();
 console.log("PASSOU")
 
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => 
+browser.runtime.onMessage.addListener( async(request, sender, sendResponse) => 
 {
     if(request.cmd === "listarTiposTarefas"){
         // debugger
         listarTiposTarefas()
     }
+    if (request.cmd === "db_select"){
+      // myPromise = new Promise((resolve, reject) => {
+        var cursor = dbSelect(request.table, (res)=>{console.debug("CAZZO res2 " + res.length )})
+        // var cursor = dbSelect(request.table)
+        // cursor.then((a)=>{
+        //   console.debug(a)
+        //   console.debug("A " + a.length)
+        // });
+        
+      //   resolve(cursor)
+      // });
+      // return myPromise
+      return Promise.resolve("caralho")
+      // return await cursor;
+      // sendResponse({cursor: cursor })
+    }
 });
-
-
-// browser.runtime.onMessage.addListener(
-//   function(request, sender, sendResponse) {
-//     console.log(sender.tab ?
-//                 "from a content script:" + sender.tab.url :
-//                 "from the extension");
-//     if (request.greeting == "hello")
-//       sendResponse({farewell: "goodbye"});
-//   }
-// );
-
-
-/*
-addTipoTarefa("995_S_15_Muito Baixa", "Atividades Comuns - Participar de reuniões e similares (Muito Baixa)", "Reuniões bla bla bla", 15)
-addTipoTarefa("996_S_30_Baixa", "Atividades Comuns - Participar de reuniões e similares (Baixa)", "Reuniões bla bla bla", 30)
-*/
 
 
 function inserirPgdGIDS(){
