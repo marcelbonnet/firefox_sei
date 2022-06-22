@@ -165,8 +165,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     indexedDB.open("pgd",1).onsuccess = function (evt) {
       const idb = this.result;
-      const tx = idb.transaction("pgd_sub_atividades", 'readonly');
-      const store = tx.objectStore("pgd_sub_atividades");
+      const tx = idb.transaction("pgd_atividades", 'readonly');
+      const store = tx.objectStore("pgd_atividades");
       let req = store.openCursor();
       req.onsuccess = function(evt) {
         var cursor = evt.target.result;
@@ -176,11 +176,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
           req = store.get(cursor.key);
           req.onsuccess = function (evt) {
             let value = evt.target.result;
-            if(value.atividade_id == sel_atividade.options[sel_atividade.selectedIndex].value ){
-              opt = document.createElement("option")
-              opt.value = value.sub_atividade
-              opt.text = value.sub_atividade
-              sel_subAtividade.add(opt)
+            if(value.id == sel_atividade.options[sel_atividade.selectedIndex].value ){
+              for(i=0; i<value.sub_atividades.length; i++){
+                if(value.sub_atividades[i] == undefined || value.sub_atividades[i].length == 0)
+                  continue;
+                opt = document.createElement("option")
+                opt.value = value.sub_atividades[i]
+                opt.text = value.sub_atividades[i]
+                sel_subAtividade.add(opt)
+              }
             }
           };
           cursor.continue();
@@ -190,8 +194,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     indexedDB.open("pgd",1).onsuccess = function (evt) {
       const idb = this.result;
-      const tx = idb.transaction("pgd_duracao", 'readonly');
-      const store = tx.objectStore("pgd_duracao");
+      const tx = idb.transaction("pgd_atividades", 'readonly');
+      const store = tx.objectStore("pgd_atividades");
       let req = store.openCursor();
       req.onsuccess = function(evt) {
         var cursor = evt.target.result;
@@ -201,11 +205,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
           req = store.get(cursor.key);
           req.onsuccess = function (evt) {
             let value = evt.target.result;
-            if(value.atividade_id == sel_atividade.options[sel_atividade.selectedIndex].value ){
-              opt = document.createElement("option")
-              opt.value = value.codigo
-              opt.text = (value.duracao < 60)? value.duracao+" min" : value.duracao/60.0 + " h"
-              sel_duracao.add(opt)
+            if(value.id == sel_atividade.options[sel_atividade.selectedIndex].value ){
+              for(i=0; i<value.duracao.length; i++){
+                opt = document.createElement("option")
+                opt.value = value.duracao[i][0]
+                opt.text = (value.duracao[i][1] < 60)? value.duracao[i][1]+" min" : value.duracao[i][1]/60.0 + " h"
+                sel_duracao.add(opt)
+              }
             }
           };
           cursor.continue();
@@ -213,75 +219,59 @@ document.addEventListener("DOMContentLoaded", function(event) {
       };
     };//indexedDB
   });
+});
 
 
+document.getElementById("btn_incluir_diario").addEventListener('click', function(btn_event){
 
+  let data_ini = document.getElementById('inicio')
+  let data_fim = document.getElementById('fim')
+  let recorrencia = document.getElementById('recorrente')
+  let encerramento = document.getElementById('encerramento')
+  let atividade = document.getElementById('atividade')
+  let duracao = document.getElementById('duracao')
+  let sub_atividade = document.getElementById('subAtividade')
+  let descricao = document.getElementById('descricao')
+  let num_sei = document.getElementById('numSei')
 
+  if(encerramento > 0){
+    indexedDB.open("pgd",1).onsuccess = function (evt) {
+      const idb = this.result;
+      const tx = idb.transaction("eventos", 'readwrite');
+      const store = tx.objectStore("eventos");
 
+      let obj = { 
+        data_ini: data_ini,
+        data_fim: data_fim,
+        recorrencia: recorrencia,
+        encerramento: encerramento,
+        atividade: atividade,
+        sub_atividade: sub_atividade,
+        duracao: duracao,
+        descricao: descricao,
+        num_sei: num_sei,
+      };
 
-  // let sending = browser.runtime.sendMessage({ cmd: "db_select", table:"pgd_atividades" });
-  // sending.then((res) => {
-  //   console.debug("RES " + res)
-  // });
+      let req;
+      try {
+        req = store.add(obj);
+      } catch (e) {
+        throw e;
+      }
 
-  // var opt = document.createElement("option")
-  // opt.value = ""
-  // opt.text = "Selecione"
-  // sel_atividade.add(opt)
+      req.onsuccess = function(event){
+        var key = event.target.result;
+        document.getElementById('flash').textContent = "Inserido com id #"+key
+      }
 
-  // //unique por atividade
-  // var lista = [];
-  // for(i=0; i<matriz.length; i++){
-  //   var b = false;
-  //   if(lista[0] === undefined)
-  //       lista.push(matriz[i].atividade)
+      req.onerror = function() {
+        document.getElementById('flash').textContent = this.error
+      };
 
-  //   for(k=0; k<lista.length; k++){
-  //     if(lista[k] == matriz[i].atividade){
-  //       b = true
-  //       break
-  //     }
-  //   }
-
-  //   if(!b)
-  //     lista.push(matriz[i].atividade)
-  // }  
-
-  // // popula com atividades únicas
-  // for(i=0; i<lista.length; i++){
-  //   var opt = document.createElement("option")
-  //   opt.value = lista[i] //igual ao texto
-  //   opt.text = lista[i]
-  //   sel_atividade.add(opt)
-  // }
-
-  // sel_atividade.addEventListener('change', function(event){
-  //   // pesquisar as durações existentes
-  //   // depois de selecionada a duração é que saberei pesquisar qual código 
-  //   // será usado para a atividade + duração
-  //   var sel_duracao = document.getElementById('duracao')
-  //   var item_selecionado = event.target.value
-  //   var lista = []
-  //   for(i=0; i<matriz.length; i++){
-  //     if(atividade === item_selecionado){
-  //       var opt = document.createElement("option")
-  //       for(k=1; k<=6; k++){
-  //         // opt.value = matriz[i]['duracao0'+k].codigo
-  //         // opt.text = matriz[i]['duracao0'+k].
-  //         // sel_duracao.add(opt)
-  //       }
-  //     }
-  //   }
-
-  // });//listener de atividade para popular duração
+      
+    };//indexedDB
+  } // evento recorrente
 
 });
 
-// debugger
-  // var div = document.querySelector("#divInfraBarraLocalizacao")
-  //   var btn = document.createElement("button")
-  //   btn.setAttribute("type", "button")
-  //   btn.setAttribute("click", "importarAtividades()")
-  //   btn.appendChild(document.createTextNode("Importar Atividades"))
-  //   // btn.addEventListener("click", importarAtividades, false)
-  //   div.appendChild(btn)
+
