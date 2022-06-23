@@ -25,30 +25,35 @@ function openDb() {
 
     var store = evt.currentTarget.result.createObjectStore(
       "pgd_atividades", { keyPath: 'id', autoIncrement: true });
-    store.createIndex('idx_ativ_area', ['area', 'atividade'], { unique: true });
-    store.createIndex('idx_ativ_descricao', 'descricao', { unique: false });
-    store.createIndex('idx_ativ_sub_atividades', 'sub_atividades', { unique: false });
-    store.createIndex('idx_ativ_duracao', 'duracao', { unique: false });
+    store.createIndex('ativ_area', ['area', 'atividade'], { unique: true });
+    store.createIndex('ativ_descricao', 'descricao', { unique: false });
+    store.createIndex('ativ_sub_atividades', 'sub_atividades', { unique: false });
+    store.createIndex('ativ_duracao', 'duracao', { unique: false });
     
 
     var store = evt.currentTarget.result.createObjectStore(
       "eventos", { keyPath: 'id', autoIncrement: true });
-    store.createIndex('idx_evento', ['data_ini','data_fim','recorrencia'], { unique: true });
-    store.createIndex('idx_encerramento', 'encerramento', { unique: false });
-    store.createIndex('idx_atividade', 'atividade', { unique: false });
-    store.createIndex('idx_sub_atividade', 'sub_atividade', { unique: false });
-    store.createIndex('idx_duracao_evento', 'duracao', { unique: false });
-    store.createIndex('idx_descricao', 'descricao', { unique: false });
-    store.createIndex('idx_num_sei', 'num_sei', { unique: false });
+    store.createIndex('data_ini', 'data_ini', { unique: false });
+    store.createIndex('data_fim', 'data_fim', { unique: false });
+    store.createIndex('recorrencia', 'recorrencia', { unique: false });
+    store.createIndex('encerramento', 'encerramento', { unique: false });
+    store.createIndex('atividade', 'atividade', { unique: false });
+    store.createIndex('sub_atividade', 'sub_atividade', { unique: false });
+    store.createIndex('duracao_evento', 'duracao', { unique: false });
+    store.createIndex('duracao_minutos_evento', 'duracao_minutos', { unique: false });
+    store.createIndex('descricao', 'descricao', { unique: false });
+    store.createIndex('num_sei', 'num_sei', { unique: false });
 
     var store = evt.currentTarget.result.createObjectStore(
       "diario", { keyPath: 'id', autoIncrement: true });
-    store.createIndex('idx_periodo_diario', ['data_ini','data_fim'], { unique: false });
-    store.createIndex('idx_atividade_diario', 'atividade', { unique: false });
-    store.createIndex('idx_sub_atividade_diario', 'sub_atividade', { unique: false });
-    store.createIndex('idx_duracao_diario', 'duracao', { unique: false });
-    store.createIndex('idx_descricao_diario', 'descricao', { unique: false });
-    store.createIndex('idx_num_sei_diario', 'num_sei', { unique: false });
+    store.createIndex('data_ini_diario', 'data_ini', { unique: false });
+    store.createIndex('data_fim_diario', 'data_fim', { unique: false });
+    store.createIndex('atividade_diario', 'atividade', { unique: false });
+    store.createIndex('sub_atividade_diario', 'sub_atividade', { unique: false });
+    store.createIndex('duracao_diario', 'duracao', { unique: false });
+    store.createIndex('duracao_minutos_diario', 'duracao_minutos', { unique: false });
+    store.createIndex('descricao_diario', 'descricao', { unique: false });
+    store.createIndex('num_sei_diario', 'num_sei', { unique: false });
 
   };
 }
@@ -171,15 +176,21 @@ MENU ITENS
 
 browser.contextMenus.create({
   id: "pgd-import",
-  title: "Incluir teste",
+  title: "Incluir Matriz SGI",
   //type: "checkbox",
   contexts: ["all"],
   //checked : dontInvertState
 }, onCreated);
 
 browser.contextMenus.create({
-  id: "pgd-export",
-  title: "Listar",
+  id: "pgd-carga-teste",
+  title: "Incluir recorrentes de teste",
+  contexts: ["all"],
+}, onCreated);
+
+browser.contextMenus.create({
+  id: "pgd-carga-diario-teste",
+  title: "Incluir diário de teste",
   contexts: ["all"],
 }, onCreated);
 
@@ -195,8 +206,11 @@ browser.contextMenus.onClicked.addListener(function(data, tab) {
         // addTipoTarefa("996_S_30_Baixa", "Atividades Comuns - Participar de reuniões e similares (Baixa)", "Reuniões bla bla bla", 30)
         inserirPgdGIDS()
         break;
-    case "pgd-export":
-        listarTiposTarefas()
+    case "pgd-carga-teste":
+        inserirDadosRecorrentesDeTeste()
+        break;
+    case "pgd-carga-diario-teste":
+        inserirDiarioDeTeste()
         break;
   }
 });
@@ -544,3 +558,536 @@ function inserirPgdGIDS(){
 
 
 } // inserirPgdGIDS
+
+
+
+function inserirDadosRecorrentesDeTeste(){
+
+  let dados_recorrentes = [
+    {
+      data_ini: '2022-06-01T09:30',
+      data_fim: '2022-06-01T10:00',
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      duracao: "996_S_30_Baixa",
+      descricao: "Projeto SGE.",
+      num_sei: '',
+      recorrencia: 1,
+      encerramento: "2022-12-31T23:59"
+    },
+    {
+      data_ini:"2022-06-01T10:00",
+      data_fim:"2022-06-01T11:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto RGL.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+      recorrencia: 1,
+      encerramento:"2022-12-31T23:59"
+    },
+    {
+      data_ini:"2022-06-01T10:30",
+      data_fim:"2022-06-01T11:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto Mosaico. Levantamento de requisitos de negócio.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+      recorrencia: 1,
+      encerramento:"2022-12-31T23:59"
+    },
+    {
+      data_ini:"2022-06-01T11:00",
+      data_fim:"2022-06-01T11:15",
+      duracao:"995_S_15_Muito Baixa",
+      descricao:"Projeto Certifica (Daily).",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+      recorrencia: 1,
+      encerramento:"2022-12-31T23:59"
+    },
+    {
+      data_ini:"2022-06-01T11:15",
+      data_fim:"2022-06-01T12:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto Certifica (Daily).",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+      recorrencia: 1,
+      encerramento:"2022-12-31T23:59"
+    },
+    {
+      data_ini:"2022-06-01T14:30",
+      data_fim:"2022-06-01T15:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto RCR (Daily).",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+      recorrencia: 1,
+      encerramento:"2022-12-31T23:59"
+    },
+    {
+      data_ini:"2022-06-01T15:15",
+      data_fim:"2022-06-01T15:45",
+      duracao:"996_S_30_Baixa",
+      descricao:"GIDS3 (Daily).",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+      recorrencia: 1,
+      encerramento:"2022-12-31T23:59"
+    },
+  ];
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("eventos", 'readwrite');
+    const store = tx.objectStore("eventos");
+
+    let req;
+    try {
+      for(i=0; i<dados_recorrentes.length; i++){
+        req = store.add(dados_recorrentes[i])
+      }
+    } catch (e) {
+      console.error("Dados de teste recorrentes: " + e.error)
+      throw e;
+    }
+
+    req.onsuccess = function(event){
+      var key = event.target.result;
+      console.debug("Recorrente de teste: #"+key);
+    }
+
+    req.onerror = function() {
+      console.error("Recorrente de teste => " + this.error);
+    };
+    
+  };//indexedDB
+}
+
+
+
+
+
+function inserirDiarioDeTeste(){
+
+  let diario = [
+    {
+      data_ini: '2022-06-20T09:30',
+      data_fim: '2022-06-20T10:00',
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      duracao: "996_S_30_Baixa",
+      descricao: "Projeto SGE.  Anderson se comprometeu a investigar o erro verificado pelo Frederico ao carregar o mapa.",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T10:00",
+      data_fim:"2022-06-20T11:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto RGL. Chamado INC-15622 foi priorizado. Renato pediu para fazer reunião com a GT1 sobre chamados em aberto. Renato afirmou que a data de validade da licença está preenchida mas não é exibida no documento ao imprimir. Airam criou a tarefa #5881. Reclamada a INC-9596 (reaberta para correção). Airam cobrou resposta sobre a integração contínua.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T10:30",
+      data_fim:"2022-06-20T11:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto Mosaico. Anderson pediu pra agendar reunião da GT1 + Augusto/SpectrumCenter. Acredita que a equipe técnica já compreendeu o negócio e precisa estudar o que será feito em termos de implementação neste time slot.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T11:00",
+      data_fim:"2022-06-20T13:00",
+      duracao:"995_S_15_Muito Baixa",
+      descricao:"Integração Contínua. Trataivas sobre quem tem interesse na automação de testes; viabilidade; alinhamento com GIDS5 e rito para solicitação. Questionamentos técnicos ao contratado.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T11:00",
+      data_fim:"2022-06-20T11:15",
+      duracao:"995_S_15_Muito Baixa",
+      descricao:"Projeto Certifica (Daily). Desenvolvedores mostraram o andamento dos chamados. PO tratou sobre Declaração de Conformidade e autenticação de usuário externo. Abordados problemas com WebServices",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T11:15",
+      data_fim:"2022-06-20T12:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto Certifica (Requisitos): não havia requisitos para levantar.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T14:30",
+      data_fim:"2022-06-20T15:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto RCR (Daily). andamento dos chamados segue normal e com chamado 15368 para validação pelo PO.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T15:15",
+      data_fim:"2022-06-20T15:45",
+      duracao:"996_S_30_Baixa",
+      descricao:"GIDS3 (Daily). Atualização da Sprint com os desenvolvedores. Enfatizado que deploy em produção somente após teste e homologação. Luciano discorreu sobre problemas no ambientes SU e PD do SCH.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Estudo dos itens de 1 a 7 do Guia de Métricas da Anatel, SEI 7055424.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Revisão dos Acordos de Nível de Serviço do Projeto Básico usado na contratação com a Spectrum Center. Analisando função de auditoria no Marval.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Análise do diário dos postos de trabalho.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"45min \"Tratamento de Incidentes\": atendimento para ORER e Augusto no período da tarde. Problemas com firewall ao homologar funcionalidades. Deise solicitou auxílio ao Alex. Eu solicitei informações sobre como proceder neste caso diretamente para a Produção. Combinamos aguardar por resposta até terça-feira de manhã antes de agir novamente.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    
+
+
+    {
+      data_ini: '2022-06-21T09:30',
+      data_fim: '2022-06-21T10:00',
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      duracao: "996_S_30_Baixa",
+      descricao: "Projeto SGE. Anderson continua investigando o problema com carregamento do mapa em TS e que poderá requerer o envolvimento da GIDS.",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T10:00",
+      data_fim:"2022-06-21T11:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto RGL. Augusto (SpectrumCenter) citou problemas de validação que foram corrigidos. Tratamos sobre o assunto de Integração Contínua (testes automatizados). Discorrido sobre demanda urgente de UTE para delegação americana.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T10:30",
+      data_fim:"2022-06-21T11:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto Mosaico. Sem requisitos de negócio para levantar. Equipe técnica segue na modelagem.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T11:00",
+      data_fim:"2022-06-21T11:15",
+      duracao:"995_S_15_Muito Baixa",
+      descricao:"Projeto Certifica (Daily). PO ausente, Stefan (ORCN) entrou como substituto. Apresentação das entregas. É preciso consultar o CPF do Representante/Representado no SEI, por causa das Procurações dos requerentes de Certificação.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T11:15",
+      data_fim:"2022-06-21T12:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto Certifica para Requisitos: não havia requisitos novos.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T14:30",
+      data_fim:"2022-06-21T15:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto RCR (Daily). Existem problemas de infra impedindo o andamento dos trabalhos.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T15:15",
+      data_fim:"2022-06-21T15:45",
+      duracao:"996_S_30_Baixa",
+      descricao:"GIDS3 (Daily). UTE/SCH têm problemas ao consumir WebServices do SEI. SGE com problemas de Firewall, INC-15951 e REQ-15952. Abordada a necessidade de esclarecimentos com PO Fred sobre SGE e importação de estações.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T16:15",
+      data_fim:"2022-06-21T17:15",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto de Migração de Dados do Mongo DB: modelagem pela equipe técnica.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-21T16:00",
+      data_fim:"2022-06-21T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Tratando problemas com Firewall que impedem o bom andamento do trabalho de desenvolvimento e testes pelos POs.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+
+
+    {
+      data_ini: '2022-06-22T09:30',
+      data_fim: '2022-06-22T10:00',
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      duracao: "996_S_30_Baixa",
+      descricao: "Projeto SGE. Tratativas relacionadas ao Firewall (Chamado REQ-15959). Esclarecimentos sobre requisitos. Dificuldade de abordar requisitos e fazer testes devido ao problema com o Firewall.",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-22T10:00",
+      data_fim:"2022-06-22T11:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto RGL. Funcionalidade de outorga por público externo continua não funcionando. WS do SEI estava com problemas ontem e está sendo investigado pela área. Abordado sobre validação de designação de emissão no Serviço 010. Abordado sobre migração de atos e exclusão de duplicação de dados.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-22T10:30",
+      data_fim:"2022-06-22T11:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto Mosaico. Requisitos de negócio não carecem de explicações. Continuação da modelagem.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-22T11:00",
+      data_fim:"2022-06-22T11:15",
+      duracao:"995_S_15_Muito Baixa",
+      descricao:"Projeto Certifica (Daily). Abordado sobre impedimento relacionado ao WS do SEI. PO quer pausar a EU sobre CCT e iniciar #14908, sobre CDC, deixando sem entregas na Sprint.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+
+    {
+      data_ini:"2022-06-20T11:00",
+      data_fim:"2022-06-20T12:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"40min Reunião GIDS3: sobre investigação do problema com o WebService do SEI.",
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-22T11:15",
+      data_fim:"2022-06-22T12:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto Certifica sem necessidade de esclarecimentos adicionais para requisitos.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-22T14:30",
+      data_fim:"2022-06-22T15:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto RCR (Daily). Informado que há um impedimento quando o Mosaico consulta o SitarWeb.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-22T15:15",
+      data_fim:"2022-06-22T15:45",
+      duracao:"996_S_30_Baixa",
+      descricao:"GIDS3 (Daily). Acompanhamento dos chamados. Informado que mudança de regra de negócio deve ser submetida por SMTI e não por VISAO, exceto se fora apenas uma análise de impacto. SGE voltou a funcionar depois que o firewall foi reconfigurado.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"reunião com Eduardo, Marcus e Augusto: investigação que se refere ao chamado REQ-16136.",
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      num_sei: '',
+    },
+
+    {
+      data_ini: '2022-06-23T09:30',
+      data_fim: '2022-06-23T10:00',
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      duracao: "996_S_30_Baixa",
+      descricao: "Projeto SGE. Andamento dos chamados. Ambiente DS está acessível.",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-23T10:00",
+      data_fim:"2022-06-23T11:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto RGL. Priorizada a SMTI 53500.048463/2022-00.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-23T10:30",
+      data_fim:"2022-06-23T11:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto Mosaico. Requisitos de negócio sob modelagem pela equipe técnica.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-23T11:00",
+      data_fim:"2022-06-23T11:15",
+      duracao:"995_S_15_Muito Baixa",
+      descricao:"Projeto Certifica (Daily). Acompanhamento de chamados.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-23T11:15",
+      data_fim:"2022-06-23T12:00",
+      duracao:"997_S_60_Média",
+      descricao:"Projeto Certifica (Requisitos). Tarefas estão claras para a equipe.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-23T14:30",
+      data_fim:"2022-06-23T15:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Projeto RCR (Daily). Bloqueio no HM ainda persiste (INC-16136), apesar de concedidas as permissões de acesso ao BD do SARH.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-23T15:15",
+      data_fim:"2022-06-23T15:45",
+      duracao:"996_S_30_Baixa",
+      descricao:"GIDS3 (Daily). Apresentação dos chamados. Problemas relatados com Firewall e alteração de tabela na versão 4 do SEI são pontos que requerem solução rápida e efetiva.",
+      atividade: 8,
+      sub_atividade:"Participação em Reunião ou similares",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Análise e triagem de processos de SMTI. 53500.048463/2022-00 para Cláudia e Moyses. Análise e triagem de processos de SMTI. 53500.048463/2022-00 para Cláudia e Moyses. 53500.020276/2022-53 pode envolver vários sistemas e foi encaminhada para Wesley.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Procurei conseguir o desbloqueio de Firewall no SGE, INC-16218. Acompanhamento de outros chamados desta semana no Marval.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Estudo do Registro de Reunião SEI 6885390 sobre Banco de Horas e Ausências/Compensações",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T16:00",
+      data_fim:"2022-06-20T17:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Tratando de assuntos ligados à Produção com o Cléoben (GIMR). Levantando informações técnicas com a equipe.",
+      atividade: 9,
+      sub_atividade: "Pesquisa ou Estudo realizado",
+      num_sei: '',
+    },
+    {
+      data_ini:"2022-06-20T11:00",
+      data_fim:"2022-06-20T12:00",
+      duracao:"996_S_30_Baixa",
+      descricao:"Reunião de Coordenadores da GIDS, onde o principal assunto foi a Fiscalização do Acompanhamento do Contrato de Postos de Trabalho.",
+      atividade: 8,
+      sub_atividade: "Participação em Reunião ou similares",
+      num_sei: '',
+    },
+
+  ];
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readwrite');
+    const store = tx.objectStore("diario");
+
+    let req;
+    try {
+      for(i=0; i<diario.length; i++){
+        req = store.add(diario[i])
+      }
+    } catch (e) {
+      console.error("Diário de teste: " + e.error)
+      throw e;
+    }
+
+    req.onsuccess = function(event){
+      var key = event.target.result;
+      console.debug("Diário de teste: #"+key);
+    }
+
+    req.onerror = function() {
+      console.error("Diário de teste => " + this.error);
+    };
+    
+  };//indexedDB
+}

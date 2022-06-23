@@ -19,7 +19,7 @@
             <option value="diario">Diário</option>
             <option value="evento">Evento</option>
           </select>
-          <select id="lista_diario_evento"></select>
+          <select id="lista_diario_evento"></select> <a href="#" id="link_evento_anterior">&lt;&lt;</a> <a href="#" id="link_evento_posterior">&gt;&gt;</a>
       </td>
       </tr>
       <tr>
@@ -77,6 +77,10 @@
     <input type="button" id="btn_incluir_diario" class="" value="Incluir Novo">
     <input type="button" id="btn_editar_diario" disabled="disabled" class="" value="Alterar">
 
+    <input type="date" id="pesquisa_ini" value="2022-06-22">
+    <input type="date" id="pesquisa_fim" value="2022-06-23">
+    <input type="button" id="btn_procurar" value="Pesquisar">
+    <input type="button" id="btn_exportar" value="Exportar">
     
 
     <div id="flash"></div>
