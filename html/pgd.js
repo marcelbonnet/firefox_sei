@@ -224,6 +224,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 opt = document.createElement("option")
                 opt.value = value.duracao[i][0]
                 opt.text = (value.duracao[i][1] < 60)? value.duracao[i][1]+" min" : value.duracao[i][1]/60.0 + " h"
+                opt.setAttribute('data-duracao', value.duracao[i][1])
                 sel_duracao.add(opt)
               }
             }
@@ -277,6 +278,9 @@ function putEventoDiario(novo){
     if(recorrencia > 0){
       obj.recorrencia = recorrencia
       obj.encerramento= encerramento
+    } else {
+      let selectedIndex = document.getElementById('duracao').selectedIndex
+      data.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
     }
 
     console.debug(obj)
@@ -320,6 +324,9 @@ function putEventoDiario(novo){
           if(recorrencia > 0){
             data.recorrencia = recorrencia
             data.encerramento= encerramento
+          } else {
+            let selectedIndex = document.getElementById('duracao').selectedIndex
+            data.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
           }
 
           req_update = store.put(data)
@@ -456,3 +463,121 @@ document.getElementById("btn_editar_diario").addEventListener('click', function(
   btn_editar_diario.setAttribute('disabled','')
   putEventoDiario(false)
 });
+
+
+// exportar
+document.getElementById("btn_exportar").addEventListener('click', function(btn_event){
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("eventos", 'readonly');
+    const store = tx.objectStore("eventos");
+    let req = store.openCursor();
+    let dados = []
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          dados.push({
+            data_ini: value.data_ini,
+            data_fim: value.data_fim,
+            atividade: value.atividade,
+            sub_atividade: value.sub_atividade,
+            duracao: value.duracao,
+            descricao: value.descricao,
+            num_sei: value.num_sei,
+            recorrencia: value.recorrencia,
+            encerramento: value.encerramento,
+            });
+        };
+        cursor.continue();
+      }
+    };
+  };//indexedDB
+
+});
+
+// procurar para calcular horas no período
+document.getElementById("btn_procurar").addEventListener('click', function(btn_event){
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readonly');
+    const store = tx.objectStore("diario");
+    let req = store.openCursor();
+      let total = 0
+      let horas = 0
+      let minutos = 0
+      let total_pgd = 0
+      let horas_pgd = 0
+      let minutos_pgd = 0
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          let fim = (new Date(value.data_fim)).getTime()
+          let ini = (new Date(value.data_ini)).getTime()
+          total+= (fim-ini)
+          total_pgd+=value.duracao_minutos
+        };
+        cursor.continue();
+      }
+      horas = Math.trunc(total/(1000*60*60))
+      minutos = Math.trunc(((total/(1000*60*60))-horas)*60)
+      horas_pgd = Math.trunc(total_pgd/60)
+      minutos_pgd = Math.trunc((total_pgd/60-horas_pgd)*60)
+      document.getElementById("flash").textContent = `No período: ${horas}:${minutos} horas de eventos. Para o SEI são ${horas_pgd}:${minutos_pgd} horas.`
+    };
+  };//indexedDB
+
+
+//   let desde = new Date(document.getElementById('pesquisa_ini').value)
+//   let ate =   new Date(document.getElementById('pesquisa_fim').value)
+
+//   desde.setHours(0)
+//   desde.setMinutes(0)
+//   desde.setSeconds(0)
+//   ate.setHours(23)
+//   ate.setMinutes(59)
+//   ate.setSeconds(59)
+// //TODO resolver depois como pesquisar por datas no index
+//   indexedDB.open("pgd",1).onsuccess = function (evt) {
+//     const idb = this.result;
+//     const tx = idb.transaction("eventos", 'readonly');
+//     const store = tx.objectStore("eventos");
+//     // store.index(['data_ini','data_fim'])
+//     let storeIndex = store.index('idx_evento')
+//     console.debug(`${desde} ${ate}`)
+//     let keyRange = IDBKeyRange.bound([desde.getTime(),desde.getTime(),0],[ate.getTime(),ate.getTime(),1000])
+//     // let req = store.openCursor(keyRange);
+//     let req = store.openCursor(keyRange);
+//     req.onsuccess = function(evt) {
+//       var cursor = evt.target.result;
+//       if (cursor) {
+//         console.debug(cursor.value.id)
+//         cursor.continue();
+//       }
+//     };
+//   };//indexedDB
+});
+
+
+function navegarEvento(direcao){
+  let lista = document.getElementById('lista_diario_evento');
+  let selectedIndex = lista.selectedIndex
+  if(direcao){
+    if(selectedIndex+1 >= lista.length) return;
+    lista.selectedIndex = selectedIndex+1
+  } else {
+    if(selectedIndex-1 < 0) return;
+    lista.selectedIndex = selectedIndex-1
+  }
+  lista.dispatchEvent(new Event('change'))
+}
+
+document.getElementById("link_evento_anterior").addEventListener('click', function(btn_event){ navegarEvento(false); });
+document.getElementById("link_evento_posterior").addEventListener('click', function(btn_event){ navegarEvento(true); });
