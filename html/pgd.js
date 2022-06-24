@@ -95,11 +95,11 @@ function reportExecuteScriptError(error) {
  * and add a click handler.
  * If we couldn't inject the script, handle the error.
  */
-browser.tabs.executeScript({file: "/js/main.js"})
-.then(function(){
-  listenForClicks();
-})
-.catch(reportExecuteScriptError);
+// browser.tabs.executeScript({file: "/js/main.js"})
+// .then(function(){
+//   listenForClicks();
+// })
+// .catch(reportExecuteScriptError);
 
 backgroundListener() // Funciona mas lança esse erro no console: Uncaught TypeError: backgroundListener() is not a function
 
@@ -581,3 +581,116 @@ function navegarEvento(direcao){
 
 document.getElementById("link_evento_anterior").addEventListener('click', function(btn_event){ navegarEvento(false); });
 document.getElementById("link_evento_posterior").addEventListener('click', function(btn_event){ navegarEvento(true); });
+
+
+
+document.getElementById("btn_sei_triagem").addEventListener('click', function(btn_event){
+
+  // browser.tabs
+  // .executeScript({file: "/js/main.js"}) //só deve importar uma vez
+  // .then(function(){
+
+  //   browser.tabs
+  //   .query({active: true, currentWindow: true})
+  //   .then((tabs)=>{
+
+  //     browser.tabs.sendMessage(tabs[0].id, {
+  //       command: "sei_triar",
+  //       valor: "foo"
+
+  //     });
+  //   });
+
+  // }).catch(reportExecuteScriptError);
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readonly');
+    const store = tx.objectStore("diario");
+    // store.index('') // vou precisar usar dois index ini/fim
+    // const keyRange = IDBKeyRange.bound()
+    // let req = store.openCursor(keyRange);
+    let req = store.openCursor();
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      let dadosTriagem = []
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          dadosTriagem.push({
+            codigo: value.duracao,
+            texto: value.sub_atividade
+          })
+        };
+        cursor.continue();
+      } 
+
+      browser.tabs
+      .executeScript({file: "/js/main.js"}) //só deve importar uma vez
+      .then(function(){
+
+        browser.tabs
+        .query({active: true, currentWindow: true})
+        .then((tabs)=>{
+
+          browser.tabs.sendMessage(tabs[0].id, {
+            command: "sei_triar",
+            dados: dadosTriagem
+          });
+        });
+
+      }).catch(reportExecuteScriptError);
+    };
+  };//indexedDB
+
+
+});
+
+document.getElementById("btn_sei_analise").addEventListener('click', function(btn_event){
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readonly');
+    const store = tx.objectStore("diario");
+    // store.index('') // vou precisar usar dois index ini/fim
+    // const keyRange = IDBKeyRange.bound()
+    // let req = store.openCursor(keyRange);
+    let req = store.openCursor();
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      let dadosAnalise = {} //estou enviando um por vez :(
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          dadosAnalise = {
+            atividade: value.atividade,
+            sub_atividade: value.sub_atividade,
+            duracao: value.duracao,
+            descricao: value.descricao,
+            data_ini: value.data_ini,
+          }
+        };
+        cursor.continue();
+      } 
+      
+      browser.tabs
+      .executeScript({file: "/js/main.js"}) //só deve importar uma vez
+      .then(function(){
+
+        browser.tabs
+        .query({active: true, currentWindow: true})
+        .then((tabs)=>{
+
+          browser.tabs.sendMessage(tabs[0].id, {
+            command: "sei_analisar",
+            dados: dadosAnalise
+          });
+        });
+
+      }).catch(reportExecuteScriptError);
+    };
+  };//indexedDB
+  
+});

@@ -49,13 +49,33 @@ function openDb() {
     store.createIndex('data_ini_diario', 'data_ini', { unique: false });
     store.createIndex('data_fim_diario', 'data_fim', { unique: false });
     store.createIndex('atividade_diario', 'atividade', { unique: false });
+    store.createIndex('atividade_nome_diario', 'atividade_nome', { unique: false });
     store.createIndex('sub_atividade_diario', 'sub_atividade', { unique: false });
     store.createIndex('duracao_diario', 'duracao', { unique: false });
     store.createIndex('duracao_minutos_diario', 'duracao_minutos', { unique: false });
     store.createIndex('descricao_diario', 'descricao', { unique: false });
     store.createIndex('num_sei_diario', 'num_sei', { unique: false });
 
-  };
+  };//req
+
+  // var reqv2 = indexedDB.open("pgd", 2);
+  // reqv2.onsuccess = function (evt) {
+  //   console.log("Abrindo versão 2");
+  // };
+  // reqv2.onerror = function (evt) {
+  //   console.error("versão 2:", evt.target.errorCode);
+  // };
+  // reqv2.onupgradeneeded = function (evt) {
+  //   console.log("Versão 2: onupgradeneeded");
+
+  //   var store = evt.target.transaction.objectStore("diario")
+  //   if(!store.indexNames.contains('atividade_nome_diario')){
+  //     store.createIndex('atividade_nome_diario', 'atividade_nome', {unique:false})
+  //   }
+    
+  // };//reqv2
+
+
 }
 
 /**

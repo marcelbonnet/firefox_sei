@@ -20,7 +20,7 @@
 
     "content_scripts": [
         {
-          "matches": ["*://*.sei.anatel.gov.br/*"],
+          "matches": ["*://*.sei.anatel.gov.br/*","*://*.seisu.anatel.gov.br/*"],
           "js": ["js/sei_content.js"]
         }
     ],
