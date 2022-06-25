@@ -25,6 +25,27 @@
         }
     ],
 
+    // "options_ui": {
+    //     "page": "html/pgd.html"
+    // },
+
+    "sidebar_action": {
+      "default_icon": {
+        "16": "images/folder.png",
+        "32": "images/folder.png"
+      },
+      "default_title": "PGD",
+      "default_panel": "html/pgd.html",
+      "open_at_install":false
+    },
+    "commands": {
+        "_execute_sidebar_action": {
+          "suggested_key": {
+            "default": "Ctrl+Shift+L"
+          }
+        }
+    },
+
     "content_security_policy": "default-src 'self'",
    
     "permissions": [

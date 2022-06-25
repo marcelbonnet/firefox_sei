@@ -280,7 +280,7 @@ function putEventoDiario(novo){
       obj.encerramento= encerramento
     } else {
       let selectedIndex = document.getElementById('duracao').selectedIndex
-      data.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
+      obj.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
     }
 
     console.debug(obj)
@@ -581,6 +581,11 @@ function navegarEvento(direcao){
 
 document.getElementById("link_evento_anterior").addEventListener('click', function(btn_event){ navegarEvento(false); });
 document.getElementById("link_evento_posterior").addEventListener('click', function(btn_event){ navegarEvento(true); });
+document.getElementById("descricao").addEventListener('keyup', function(event){
+  let desc = document.getElementById("descricao").value
+  let max = document.getElementById("descricao").getAttribute('maxlength')
+  document.getElementById("descricao_count").textContent = max - desc.length
+});
 
 
 
