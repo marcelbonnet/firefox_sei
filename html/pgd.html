@@ -4,92 +4,138 @@
   <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="../plugin.css"/>
+    <link rel="stylesheet" href="tabs.css"/>
+    <link rel="stylesheet" href="pgd.css"/>
   </head>
 
 <body>
 
-  <fieldset>
-    <legend>Inclusão de Evento/Atividade</legend>
-    <table>
-      <tr>
-        <th>Editar</th>
-        <td>
-          <select id="tipo_evento">
-            <option value="">Selecione</option>
-            <option value="diario">Diário</option>
-            <option value="evento">Evento</option>
-          </select>
-          <select id="lista_diario_evento"></select> <a href="#" id="link_evento_anterior">&lt;&lt;</a> <a href="#" id="link_evento_posterior">&gt;&gt;</a>
-      </td>
-      </tr>
-      <tr>
-        <th>Início</th>
-        <td><input type="datetime-local" id="inicio"></td>
-      </tr>
-      <tr>
-        <th>Fim</th>
-        <td><input type="datetime-local" id="fim"></td>
-      </tr>
-      <tr>
-        <th>Recorrência (dias)</th>
-        <td> 
-          <input type="number" id="recorrente" value="0" min="0" max="366" step="1">
-          até
-          <input type="datetime-local" id="encerramento">
-        </td>
-      </tr>
-      <tr>
-        <th>Atividade</th>
-        <td>
-          <select id="atividade"></select>
-        </td>
-      </tr>
-      <tr>
-        <th>Duração</th>
-        <td>
-          <p><small>No período: <span id="spanDuracao"></span></small></p>
-          <p>
-            <select id="duracao"></select>
-          </p>
-        </td>
-      </tr>
-      <tr>
-        <th>Sub Atividade</th>
-        <td>
-          <select id="subAtividade"></select>
-        </td>
-      </tr>
-      <tr>
-        <th>Descrição</th>
-        <td>
-          <textarea id="descricao" maxlength="500" rows="5" cols="40"></textarea>
-          <p><small>Restam <span id="descricao_count"></span> caracteres.</small></p>
-        </td>
-      </tr>
-      <tr>
-        <th>Nº SEI</th>
-        <td>
-          <input type="text" id="numSei">
-        </td>
-      </tr>
-    </table>
-    
-    <input type="hidden" id="diario_evento_id">
-    <input type="button" id="btn_incluir_diario" class="" value="Incluir Novo">
-    <input type="button" id="btn_editar_diario" disabled="disabled" class="" value="Alterar">
+  <div class="tabs">
+    <div class="tab">
+      <input type="radio" id="tab1" name="tab-group" checked>
+      <label for="tab1">Evento</label>
+      <div class="content">
+        <table id="table_eventos"></table>
+      </div> <!-- fim da div tab content -->
+    </div> <!-- fim da tab -->
 
-    <p>Funções por Período:</p>
-    <input type="date" id="pesquisa_ini" value="2022-06-20">
-    <input type="date" id="pesquisa_fim" value="2022-06-23">
-    <br>
-    <input type="button" id="btn_procurar" value="Pesquisar">
-    <input type="button" id="btn_exportar" value="Exportar">
-    <input type="button" id="btn_sei_triagem" value="Triagem">
-    <input type="button" id="btn_sei_analise" value="Análise">
-    
+    <div class="tab">
+      <input type="radio" id="tab2" name="tab-group">
+      <label for="tab2">Diário</label>
+      <div class="content">
+        <table>
+          <tr>
+            <th>De</th>
+            <td>
+              <input type="date" name="tab_diario_pesquisa" id="tab_diario_ini">
+            </td>
+            <th>Até</th>
+            <td>
+              <input type="date" name="tab_diario_pesquisa" id="tab_diario_fim">
+            </td>
+          </tr>
+          <tr>
+            <th></th>
+            <td colspan="3">
+              <span id="tab_diario_horas_total"></span> no período.
+            </td>
+          </tr>
+        </table>
 
-    <div id="flash"></div>
-  </fieldset>
+        <table id="table_diario"></table>
+      </div> <!-- fim da div tab content -->
+    </div> <!-- fim da tab -->
+
+    <div class="tab">
+      <input type="radio" id="tab3" name="tab-group">
+      <label for="tab3">Editar/Incluir</label>
+      <div class="content">
+        <table id="table_edit">
+          <tr>
+            <th>Editar</th>
+            <td>
+              <select id="tipo_evento">
+                <option value="">Selecione</option>
+                <option value="diario">Diário</option>
+                <option value="evento">Evento</option>
+              </select>
+              <select id="lista_diario_evento"></select> <a href="#" id="link_evento_anterior">&lt;&lt;</a> <a href="#" id="link_evento_posterior">&gt;&gt;</a>
+          </td>
+          </tr>
+          <tr>
+            <th>Início</th>
+            <td><input type="datetime-local" id="inicio"></td>
+          </tr>
+          <tr>
+            <th>Fim</th>
+            <td><input type="datetime-local" id="fim"></td>
+          </tr>
+          <tr>
+            <th>Recorrência</th>
+            <td> 
+              <input type="number" id="recorrente" value="0" min="0" max="366" step="1" size="1"> (dias)
+              <p>com encerramento em</p>
+              <input type="datetime-local" id="encerramento">
+            </td>
+          </tr>
+          <tr>
+            <th>Atividade</th>
+            <td>
+              <select id="atividade"></select>
+            </td>
+          </tr>
+          <tr>
+            <th>Duração</th>
+            <td>
+              <p><small>No período: <span id="spanDuracao"></span></small></p>
+              <p>
+                <select id="duracao"></select>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <th>Sub Atividade</th>
+            <td>
+              <select id="subAtividade"></select>
+            </td>
+          </tr>
+          <tr>
+            <th>Descrição</th>
+            <td>
+              <textarea id="descricao" maxlength="500" rows="5" cols="40"></textarea>
+              <p><small>Restam <span id="descricao_count"></span> caracteres.</small></p>
+            </td>
+          </tr>
+          <tr>
+            <th>Nº SEI</th>
+            <td>
+              <input type="text" id="numSei">
+            </td>
+          </tr>
+        </table>
+        
+        <input type="hidden" id="diario_evento_id">
+        <input type="button" id="btn_incluir_diario" class="" value="Incluir Novo">
+        <input type="button" id="btn_editar_diario" disabled="disabled" class="" value="Alterar">
+
+        <p>Funções por Período:</p>
+        <input type="date" id="pesquisa_ini" value="2022-06-20">
+        <input type="date" id="pesquisa_fim" value="2022-06-23">
+        <br>
+        <input type="button" id="btn_procurar" value="Pesquisar">
+        <input type="button" id="btn_exportar" value="Exportar">
+        <input type="button" id="btn_sei_triagem" value="Triagem">
+        <input type="button" id="btn_sei_analise" value="Análise">
+        
+
+        <div id="flash"></div>
+      </div> <!-- fim da div tab content -->
+    </div> <!-- fim da tab -->
+
+  </div> <!-- fim todas as tabs -->
+
+
+  
   
   <!-- <div id="popup-content">
     <input type="button" class="button teste" value="Testar">

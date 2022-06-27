@@ -1,3 +1,13 @@
+if( typeof Element.prototype.clearChildren === 'undefined' ) {
+    Object.defineProperty(Element.prototype, 'clearChildren', {
+      configurable: true,
+      enumerable: false,
+      value: function() {
+        while(this.firstChild) this.removeChild(this.lastChild);
+      }
+    });
+}
+
 /**
  * Listen for clicks on the buttons, and send the appropriate message to
  * the content script in the page.
@@ -123,6 +133,38 @@ function createOptionSelecione(){
   return opt
 }
 
+function datetime2date(data){
+  let a = data
+  if((data instanceof Date) == false)
+    a = new Date(data)
+  return a.toISOString().substring(0,a.toISOString().indexOf('T'))
+}
+
+function hojeMinMax(desde, ate){
+  desde = desde instanceof Date ? desde : new Date(desde)
+  ate =  ate instanceof Date ? ate : new Date(ate)
+
+  desde.setHours(0)
+  desde.setMinutes(0)
+  desde.setSeconds(0)
+  ate.setHours(23)
+  ate.setMinutes(59)
+  ate.setSeconds(59)
+  return {
+    desde: desde.toISOString(),
+    ate: ate.toISOString()
+    }
+}
+
+function formatarTempo(minutos, formato){
+  if(formato === "hhmm"){
+    horas = Math.trunc(minutos/(60))
+    minutos = Math.trunc(((minutos/(60))-horas)*60)
+    return `${horas<10? '0'+horas : horas}h${minutos<10? '0'+minutos : minutos}`
+  } else
+    return (minutos < 60)? minutos+" min" : minutos/60.0 + " h"
+}
+
 
 function exibirDuracao(){
   let data_ini = new Date(document.getElementById("inicio").value).getTime()
@@ -244,6 +286,7 @@ function putEventoDiario(novo){
   let recorrencia = document.getElementById('recorrente').value
   let encerramento = document.getElementById('encerramento').value
   let atividade = document.getElementById('atividade').value
+  let atividade_nome = document.getElementById('atividade').options[document.getElementById('atividade').selectedIndex].text
   let duracao = document.getElementById('duracao').value
   let sub_atividade = document.getElementById('subAtividade').value
   let descricao = document.getElementById('descricao').value
@@ -281,6 +324,7 @@ function putEventoDiario(novo){
     } else {
       let selectedIndex = document.getElementById('duracao').selectedIndex
       obj.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
+      obj.atividade_nome = atividade_nome
     }
 
     console.debug(obj)
@@ -327,6 +371,7 @@ function putEventoDiario(novo){
           } else {
             let selectedIndex = document.getElementById('duracao').selectedIndex
             data.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
+            data.atividade_nome= atividade_nome
           }
 
           req_update = store.put(data)
@@ -699,3 +744,79 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
   };//indexedDB
   
 });
+
+document.getElementById("tab2").addEventListener('click', function(btn_event){
+  let datas = hojeMinMax(new Date(), new Date())
+  popularTabelaDiario(datas.desde, datas.ate)
+  console.log(`${datas.desde} => ${datas.ate}`)
+  document.getElementById('tab_diario_ini').value = datetime2date(datas.desde)
+  document.getElementById('tab_diario_fim').value = datetime2date(datas.ate)
+});
+
+document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(elem,index){
+    elem.addEventListener('change', function(btn_event){
+    let ini = document.getElementById('tab_diario_ini').value
+    let fim = document.getElementById('tab_diario_fim').value
+    let datas;
+    if(ini !== "" && fim !== "")
+      datas = hojeMinMax(ini, fim)
+    else if(ini !== "")
+      datas = hojeMinMax(ini, ini)
+    else
+      return
+    popularTabelaDiario(datas.desde, datas.ate)
+  });
+})
+
+function popularTabelaDiario(desde_iso_str, ate_iso_str){
+  
+  document.getElementById("table_diario").clearChildren();
+  document.getElementById("tab_diario_horas_total").textContent="";
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readonly');
+    let store = tx.objectStore("diario");
+    store = store.index('data_ini_diario')
+    const keyRange = IDBKeyRange.bound(desde_iso_str, ate_iso_str)
+    let req = store.openCursor(keyRange, "next");
+    let total_horas = 0;
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          let tr = document.createElement("tr")
+          let p_data_ini = document.createElement("p")
+          p_data_ini.textContent=value.data_ini
+          let p_data_fim = document.createElement("p")
+          p_data_fim.textContent=value.data_fim
+          let td_data = document.createElement("td")
+          td_data.append(p_data_ini)
+          td_data.append(p_data_fim)
+          tr.append(td_data)
+
+          let td_duracao = document.createElement("td")
+          td_duracao.textContent = formatarTempo(value.duracao_minutos)
+
+          tr.append(td_duracao)
+          let p_ativ = document.createElement("p")
+          p_ativ.textContent = value.atividade_nome
+          let p_desc = document.createElement("small")
+          p_desc.textContent = value.descricao
+          let td_desc = document.createElement("td")
+          td_desc.append(p_ativ)
+          td_desc.append(p_desc)
+          tr.append(td_desc)
+          document.getElementById("table_diario").append(tr)
+
+          total_horas+=value.duracao_minutos
+        };
+        cursor.continue();
+      } else {
+        document.getElementById("tab_diario_horas_total").textContent = formatarTempo(total_horas, "hhmm");
+      }
+    };
+  };//indexedDB
+}
