@@ -23,42 +23,52 @@
 
   }
 
-  // function fazerTriagem(dados){
-  //   console.debug("RECEBI: "+ dados.length)
-  //   let frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body
-  //   let div = frame.querySelector("#divInfraBarraComandosSuperior")
-  //   frame.querySelector("#btnIniciarTriagem").dispatchEvent(new Event('click'));
-
-  //   //trocar por interval e fazer ele parar quando executar tudo
-  //   setTimeout(function(){
-  //     let combo = frame.querySelector("#selAtividade")
-  //     for(i=0;i<dados.length;i++){
-  //       console.debug(dados[i].codigo)
-  //       let opt = document.createElement("option")
-  //       opt.value = dados[i].codigo
-  //       opt.text = dados[i].texto
-  //       combo.add(opt)
-  //     }
-  //     frame.querySelector("#btnAdicionar").dispatchEvent(new Event('click'));
-  //     frame.querySelector("#btnSalvar").dispatchEvent(new Event('click'));
-  //   },2000);
-
-
-  // }// function de triagem
-
-  //recebendo um registro por vez
   function fazerTriagem(dados){
+    console.debug("RECEBI: "+ dados.length)
     let frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body
-    let combo = frame.querySelector("#selAtividade")
-    for(i=0;i<dados.length;i++){
-      console.debug(dados[i].codigo)
-      let opt = document.createElement("option")
-      opt.value = dados[i].codigo
-      opt.text = dados[i].texto
-      combo.add(opt)
-    }
+    let div = frame.querySelector("#divInfraBarraComandosSuperior")
+    
+    // FIXME não continuou depois do dispatch
+    // frame.querySelector("#btnIniciarTriagem").dispatchEvent(new Event('click'));
+
+    //trocar por interval e fazer ele parar quando executar tudo
+    setTimeout(function(){
+      let combo = frame.querySelector("#selAtividade")
+      if(combo == undefined || combo == null){
+        alert('SEI demorou demais para responder. Repita a operação.')
+        history.back()
+        return;
+      }
+      for(i=0;i<dados.length;i++){
+        console.debug(dados[i].codigo)
+        let opt = document.createElement("option")
+        opt.value = dados[i].codigo
+        opt.text = dados[i].texto
+        combo.add(opt)
+      }
+      frame.querySelector("#btnAdicionar").dispatchEvent(new Event('click'));
+
+      // FIXME está causando erro de que faltou uma coluna ao submeter:
+      // frame.querySelector("#btnSalvar").dispatchEvent(new Event('click'));
+      // frame.querySelectorAll("form")[0].submit();
+    },0); // FIXME incrementar se conseguir navegar automaticamente
+
 
   }// function de triagem
+
+  //recebendo um registro por vez
+  // function fazerTriagem(dados){
+  //   let frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body
+  //   let combo = frame.querySelector("#selAtividade")
+  //   for(i=0;i<dados.length;i++){
+  //     console.debug(dados[i].codigo)
+  //     let opt = document.createElement("option")
+  //     opt.value = dados[i].codigo
+  //     opt.text = dados[i].texto
+  //     combo.add(opt)
+  //   }
+
+  // }// function de triagem
 
 
   var invocado = false

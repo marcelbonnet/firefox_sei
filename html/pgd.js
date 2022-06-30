@@ -653,44 +653,50 @@ document.getElementById("btn_sei_triagem").addEventListener('click', function(bt
 
   // }).catch(reportExecuteScriptError);
 
+  let ini = document.getElementById('pesquisa_ini').value
+  let fim = document.getElementById('pesquisa_fim').value
+  let datas = hojeMinMax(ini,fim)
+
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
-    const store = tx.objectStore("diario");
-    // store.index('') // vou precisar usar dois index ini/fim
-    // const keyRange = IDBKeyRange.bound()
-    // let req = store.openCursor(keyRange);
-    let req = store.openCursor();
+    let store = tx.objectStore("diario");
+    store = store.index('data_ini_diario')
+    const keyRange = IDBKeyRange.bound(datas.desde, datas.ate)
+    let req = store.openCursor(keyRange, "next");
+    let dadosTriagem = []
     req.onsuccess = function(evt) {
       var cursor = evt.target.result;
-      let dadosTriagem = []
       if (cursor) {
         req = store.get(cursor.key);
         req.onsuccess = function (cur_event) {
           let value = cur_event.target.result;
           dadosTriagem.push({
             codigo: value.duracao,
-            texto: value.sub_atividade
+            texto: value.atividade_nome
           })
         };
+        console.debug("triagem de " + value.duracao)
         cursor.continue();
-      } 
-
-      browser.tabs
-      .executeScript({file: "/js/main.js"}) //só deve importar uma vez
-      .then(function(){
-
+      } else {
+        console.debug("===> todos os dados para triagem " + dadosTriagem.length)
         browser.tabs
-        .query({active: true, currentWindow: true})
-        .then((tabs)=>{
+        .executeScript({file: "/js/main.js"}) //só deve importar uma vez
+        .then(function(){
 
-          browser.tabs.sendMessage(tabs[0].id, {
-            command: "sei_triar",
-            dados: dadosTriagem
+          browser.tabs
+          .query({active: true, currentWindow: true})
+          .then((tabs)=>{
+
+            browser.tabs.sendMessage(tabs[0].id, {
+              command: "sei_triar",
+              dados: dadosTriagem
+            });
           });
-        });
 
-      }).catch(reportExecuteScriptError);
+        }).catch(reportExecuteScriptError);
+      }
+
     };
   };//indexedDB
 
