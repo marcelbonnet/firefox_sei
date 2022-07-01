@@ -54,29 +54,12 @@
           <tr>
             <th>Editar</th>
             <td>
-              <select id="tipo_evento">
-                <option value="">Selecione</option>
-                <option value="diario">Diário</option>
-                <option value="evento">Evento</option>
-              </select>
-              <select id="lista_diario_evento"></select> <a href="#" id="link_evento_anterior">&lt;&lt;</a> <a href="#" id="link_evento_posterior">&gt;&gt;</a>
+              <select id="lista_diario"></select> <a href="#" id="link_evento_anterior">&lt;&lt;</a> <a href="#" id="link_evento_posterior">&gt;&gt;</a>
           </td>
           </tr>
           <tr>
-            <th>Início</th>
-            <td><input type="datetime-local" id="inicio"></td>
-          </tr>
-          <tr>
-            <th>Fim</th>
-            <td><input type="datetime-local" id="fim"></td>
-          </tr>
-          <tr>
-            <th>Recorrência</th>
-            <td> 
-              <input type="number" id="recorrente" value="0" min="0" max="366" step="1" size="1"> (dias)
-              <p>com encerramento em</p>
-              <input type="datetime-local" id="encerramento">
-            </td>
+            <th>Data</th>
+            <td><input type="date" id="data"></td>
           </tr>
           <tr>
             <th>Atividade</th>

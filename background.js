@@ -46,8 +46,7 @@ function openDb() {
 
     var store = evt.currentTarget.result.createObjectStore(
       "diario", { keyPath: 'id', autoIncrement: true });
-    store.createIndex('data_ini_diario', 'data_ini', { unique: false });
-    store.createIndex('data_fim_diario', 'data_fim', { unique: false });
+    store.createIndex('data_diario', 'data', { unique: false });
     store.createIndex('atividade_diario', 'atividade', { unique: false });
     store.createIndex('atividade_nome_diario', 'atividade_nome', { unique: false });
     store.createIndex('sub_atividade_diario', 'sub_atividade', { unique: false });

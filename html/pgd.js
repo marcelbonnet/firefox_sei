@@ -180,8 +180,38 @@ function exibirDuracao(){
   span.textContent = horas
 }
 
-document.getElementById("inicio").addEventListener('change', function(btn_event){ exibirDuracao(); });
-document.getElementById("fim").addEventListener('change', function(btn_event){ exibirDuracao(); });
+
+function carregarListaDiario(){
+  let lista = document.getElementById('lista_diario')
+
+  removeOptions(lista)
+  lista.add(createOptionSelecione())
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readonly');
+    const store = tx.objectStore("diario");
+    let req = store.openCursor();
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          opt = document.createElement("option")
+          opt.value = value.id
+          opt.text = `#${value.id} ${value.data} ${value.descricao.substring(0,20)}`
+          lista.add(opt)
+        };
+        cursor.continue();
+      }
+    };
+  };//indexedDB
+}
+
+// document.getElementById("inicio").addEventListener('change', function(btn_event){ exibirDuracao(); });
+// document.getElementById("fim").addEventListener('change', function(btn_event){ exibirDuracao(); });
 
 document.addEventListener("DOMContentLoaded", function(event) { 
   var sel_atividade = document.getElementById('atividade')
@@ -191,6 +221,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
   sel_atividade.add(createOptionSelecione())
   sel_subAtividade.add(createOptionSelecione())
   sel_duracao.add(createOptionSelecione())
+
+  carregarListaDiario();
 
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
@@ -281,10 +313,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
 function putEventoDiario(novo){
-  let data_ini = document.getElementById('inicio').value
-  let data_fim = document.getElementById('fim').value
-  let recorrencia = document.getElementById('recorrente').value
-  let encerramento = document.getElementById('encerramento').value
+  let data = document.getElementById('data').value
+  // let recorrencia = document.getElementById('recorrente').value
+  // let encerramento = document.getElementById('encerramento').value
   let atividade = document.getElementById('atividade').value
   let atividade_nome = document.getElementById('atividade').options[document.getElementById('atividade').selectedIndex].text
   let duracao = document.getElementById('duracao').value
@@ -295,9 +326,9 @@ function putEventoDiario(novo){
 
   let table_name = ""
 
-  if(recorrencia > 0)
-    table_name = "eventos"
-  else
+  // if(recorrencia > 0)
+  //   table_name = "eventos"
+  // else
     table_name = "diario"
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
@@ -306,8 +337,7 @@ function putEventoDiario(novo){
     const store = tx.objectStore(table_name);
 
     let obj = { 
-      data_ini: data_ini,
-      data_fim: data_fim,
+      data: data,
       atividade: atividade,
       sub_atividade: sub_atividade,
       duracao: duracao,
@@ -318,14 +348,17 @@ function putEventoDiario(novo){
     // if(!novo)
     //   obj.id = diario_evento_id
 
-    if(recorrencia > 0){
-      obj.recorrencia = recorrencia
-      obj.encerramento= encerramento
-    } else {
-      let selectedIndex = document.getElementById('duracao').selectedIndex
+    // if(recorrencia > 0){
+    //   obj.recorrencia = recorrencia
+    //   obj.encerramento= encerramento
+    // } else {
+    //   let selectedIndex = document.getElementById('duracao').selectedIndex
+    //   obj.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
+    //   obj.atividade_nome = atividade_nome
+    // }
+    let selectedIndex = document.getElementById('duracao').selectedIndex
       obj.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
       obj.atividade_nome = atividade_nome
-    }
 
     console.debug(obj)
 
@@ -355,26 +388,28 @@ function putEventoDiario(novo){
         const objectStore = store.get(parseInt(diario_evento_id))
 
         objectStore.onsuccess = function(ev){
-          const data = ev.target.result
-          console.debug(`get ${diario_evento_id} => ${data}`)
-          data.data_ini = data_ini
-          data.data_fim = data_fim
-          data.atividade= atividade
-          data.sub_atividade= sub_atividade
-          data.duracao= duracao
-          data.descricao= descricao
-          data.num_sei= num_sei
+          const dados = ev.target.result
+          console.debug(`get ${diario_evento_id} => ${dados}`)
+          dados.data = data
+          dados.atividade= atividade
+          dados.sub_atividade= sub_atividade
+          dados.duracao= duracao
+          dados.descricao= descricao
+          dados.num_sei= num_sei
 
-          if(recorrencia > 0){
-            data.recorrencia = recorrencia
-            data.encerramento= encerramento
-          } else {
-            let selectedIndex = document.getElementById('duracao').selectedIndex
-            data.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
-            data.atividade_nome= atividade_nome
-          }
+          // if(recorrencia > 0){
+          //   data.recorrencia = recorrencia
+          //   data.encerramento= encerramento
+          // } else {
+          //   let selectedIndex = document.getElementById('duracao').selectedIndex
+          //   data.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
+          //   data.atividade_nome= atividade_nome
+          // }
+          let selectedIndex = document.getElementById('duracao').selectedIndex
+            dados.duracao_minutos = parseInt(document.getElementById('duracao')[selectedIndex].getAttribute('data-duracao'))
+            dados.atividade_nome= atividade_nome
 
-          req_update = store.put(data)
+          req_update = store.put(dados)
           req_update.onsuccess = function(event){
             var key = event.target.result;
             document.getElementById('flash').textContent = "Atualizei Id #"+key
@@ -391,55 +426,52 @@ function putEventoDiario(novo){
     
   };//indexedDB
 }
+// removi essa combo
+// document.getElementById("tipo_evento").addEventListener('change', function(btn_event){
 
-document.getElementById("tipo_evento").addEventListener('change', function(btn_event){
+//   let tipo_evento = document.getElementById('tipo_evento')
+//   let lista = document.getElementById('lista_diario_evento')
 
-  let tipo_evento = document.getElementById('tipo_evento')
-  let lista = document.getElementById('lista_diario_evento')
+//   removeOptions(lista)
+//   lista.add(createOptionSelecione())
 
-  removeOptions(lista)
-  lista.add(createOptionSelecione())
-
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
-    const idb = this.result;
-    let table_name = "eventos"
+//   indexedDB.open("pgd",1).onsuccess = function (evt) {
+//     const idb = this.result;
+//     let table_name = "eventos"
     
-    if(tipo_evento.value === "diario")
-      table_name = "diario"
-    else if(tipo_evento.value === "evento")
-      table_name = "eventos"
-    else
-      return;
+//     if(tipo_evento.value === "diario")
+//       table_name = "diario"
+//     else if(tipo_evento.value === "evento")
+//       table_name = "eventos"
+//     else
+//       return;
 
-    const tx = idb.transaction(table_name, 'readonly');
-    const store = tx.objectStore(table_name);
-    let req = store.openCursor();
-    req.onsuccess = function(evt) {
-      var cursor = evt.target.result;
+//     const tx = idb.transaction(table_name, 'readonly');
+//     const store = tx.objectStore(table_name);
+//     let req = store.openCursor();
+//     req.onsuccess = function(evt) {
+//       var cursor = evt.target.result;
 
-      if (cursor) {
-        req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
-          opt = document.createElement("option")
-          opt.value = value.id
-          opt.text = `#${value.id} ${value.data_ini}`
-          lista.add(opt)
-        };
-        cursor.continue();
-      }
-    };
-  };//indexedDB
-});
+//       if (cursor) {
+//         req = store.get(cursor.key);
+//         req.onsuccess = function (cur_event) {
+//           let value = cur_event.target.result;
+//           opt = document.createElement("option")
+//           opt.value = value.id
+//           opt.text = `#${value.id} ${value.data_ini}`
+//           lista.add(opt)
+//         };
+//         cursor.continue();
+//       }
+//     };
+//   };//indexedDB
+// });
 
 
 // carrega o form com registro de evento/diário do db
-document.getElementById("lista_diario_evento").addEventListener('change', function(btn_event){
+document.getElementById("lista_diario").addEventListener('change', function(btn_event){
 
-  let data_ini = document.getElementById('inicio')
-  let data_fim = document.getElementById('fim')
-  let recorrencia = document.getElementById('recorrente')
-  let encerramento = document.getElementById('encerramento')
+  let data = document.getElementById('data')
   let atividade = document.getElementById('atividade')
   let duracao = document.getElementById('duracao')
   let sub_atividade = document.getElementById('subAtividade')
@@ -450,22 +482,12 @@ document.getElementById("lista_diario_evento").addEventListener('change', functi
 
   btn_editar_diario.removeAttribute('disabled')
 
-  let tipo_evento = document.getElementById('tipo_evento')
-  let lista = document.getElementById('lista_diario_evento')
+  let lista = document.getElementById('lista_diario')
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
-    let table_name = "eventos"
-
-    if(tipo_evento.value === "diario")
-      table_name = "diario"
-    else if(tipo_evento.value === "evento")
-      table_name = "eventos"
-    else
-      return;
-
-    const tx = idb.transaction(table_name, 'readonly');
-    const store = tx.objectStore(table_name);
+    const tx = idb.transaction("diario", 'readonly');
+    const store = tx.objectStore("diario");
     let req = store.openCursor();
     req.onsuccess = function(evt) {
       var cursor = evt.target.result;
@@ -476,10 +498,7 @@ document.getElementById("lista_diario_evento").addEventListener('change', functi
           let value = cur_event.target.result;
           if(value.id == lista.value){
             diario_evento_id.value = value.id
-            data_ini.value = value.data_ini
-            data_fim.value = value.data_fim
-            recorrencia.value = value.recorrencia
-            encerramento.value = value.encerramento
+            data.value = value.data
             atividade.value = value.atividade
             descricao.value = value.descricao
             num_sei.value = value.num_sei
@@ -487,8 +506,6 @@ document.getElementById("lista_diario_evento").addEventListener('change', functi
             setTimeout(()=>{
               duracao.value = value.duracao
               sub_atividade.value = value.sub_atividade
-
-              exibirDuracao()
             }, 600)  
           }
         };
@@ -501,12 +518,14 @@ document.getElementById("lista_diario_evento").addEventListener('change', functi
 
 document.getElementById("btn_incluir_diario").addEventListener('click', function(btn_event){
   putEventoDiario(true)
+  carregarListaDiario();
 });
 
 document.getElementById("btn_editar_diario").addEventListener('click', function(btn_event){
   let btn_editar_diario = document.getElementById('btn_editar_diario')
   btn_editar_diario.setAttribute('disabled','')
   putEventoDiario(false)
+  carregarListaDiario();
 });
 
 
@@ -526,8 +545,7 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
         req.onsuccess = function (cur_event) {
           let value = cur_event.target.result;
           dados.push({
-            data_ini: value.data_ini,
-            data_fim: value.data_fim,
+            data: value.data,
             atividade: value.atividade,
             sub_atividade: value.sub_atividade,
             duracao: value.duracao,
@@ -552,9 +570,6 @@ document.getElementById("btn_procurar").addEventListener('click', function(btn_e
     const tx = idb.transaction("diario", 'readonly');
     const store = tx.objectStore("diario");
     let req = store.openCursor();
-      let total = 0
-      let horas = 0
-      let minutos = 0
       let total_pgd = 0
       let horas_pgd = 0
       let minutos_pgd = 0
@@ -564,18 +579,13 @@ document.getElementById("btn_procurar").addEventListener('click', function(btn_e
         req = store.get(cursor.key);
         req.onsuccess = function (cur_event) {
           let value = cur_event.target.result;
-          let fim = (new Date(value.data_fim)).getTime()
-          let ini = (new Date(value.data_ini)).getTime()
-          total+= (fim-ini)
           total_pgd+=value.duracao_minutos
         };
         cursor.continue();
       }
-      horas = Math.trunc(total/(1000*60*60))
-      minutos = Math.trunc(((total/(1000*60*60))-horas)*60)
       horas_pgd = Math.trunc(total_pgd/60)
       minutos_pgd = Math.trunc((total_pgd/60-horas_pgd)*60)
-      document.getElementById("flash").textContent = `No período: ${horas}:${minutos} horas de eventos. Para o SEI são ${horas_pgd}:${minutos_pgd} horas.`
+      document.getElementById("flash").textContent = `${horas_pgd}:${minutos_pgd} horas de PGD.`
     };
   };//indexedDB
 
@@ -612,7 +622,7 @@ document.getElementById("btn_procurar").addEventListener('click', function(btn_e
 
 
 function navegarEvento(direcao){
-  let lista = document.getElementById('lista_diario_evento');
+  let lista = document.getElementById('lista_diario');
   let selectedIndex = lista.selectedIndex
   if(direcao){
     if(selectedIndex+1 >= lista.length) return;
@@ -636,46 +646,28 @@ document.getElementById("descricao").addEventListener('keyup', function(event){
 
 document.getElementById("btn_sei_triagem").addEventListener('click', function(btn_event){
 
-  // browser.tabs
-  // .executeScript({file: "/js/main.js"}) //só deve importar uma vez
-  // .then(function(){
-
-  //   browser.tabs
-  //   .query({active: true, currentWindow: true})
-  //   .then((tabs)=>{
-
-  //     browser.tabs.sendMessage(tabs[0].id, {
-  //       command: "sei_triar",
-  //       valor: "foo"
-
-  //     });
-  //   });
-
-  // }).catch(reportExecuteScriptError);
-
   let ini = document.getElementById('pesquisa_ini').value
   let fim = document.getElementById('pesquisa_fim').value
-  let datas = hojeMinMax(ini,fim)
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     let store = tx.objectStore("diario");
-    store = store.index('data_ini_diario')
-    const keyRange = IDBKeyRange.bound(datas.desde, datas.ate)
+    store = store.index('data_diario')
+    const keyRange = IDBKeyRange.bound(ini, fim)
     let req = store.openCursor(keyRange, "next");
     let dadosTriagem = []
     req.onsuccess = function(evt) {
       var cursor = evt.target.result;
       if (cursor) {
         req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
+        // req.onsuccess = function (cur_event) {
+          let value = cursor.value;
           dadosTriagem.push({
             codigo: value.duracao,
             texto: value.atividade_nome
           })
-        };
+        // };
         console.debug("triagem de " + value.duracao)
         cursor.continue();
       } else {
@@ -725,7 +717,7 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
             sub_atividade: value.sub_atividade,
             duracao: value.duracao,
             descricao: value.descricao,
-            data_ini: value.data_ini,
+            data: value.data,
           }
         };
         cursor.continue();
@@ -752,11 +744,9 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
 });
 
 document.getElementById("tab2").addEventListener('click', function(btn_event){
-  let datas = hojeMinMax(new Date(), new Date())
-  popularTabelaDiario(datas.desde, datas.ate)
-  console.log(`${datas.desde} => ${datas.ate}`)
-  document.getElementById('tab_diario_ini').value = datetime2date(datas.desde)
-  document.getElementById('tab_diario_fim').value = datetime2date(datas.ate)
+  popularTabelaDiario(new Date(), new Date())
+  document.getElementById('tab_diario_ini').value = datetime2date(new Date())
+  document.getElementById('tab_diario_fim').value = datetime2date(new Date())
 });
 
 document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(elem,index){
@@ -783,24 +773,21 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     let store = tx.objectStore("diario");
-    store = store.index('data_ini_diario')
+    store = store.index('data_diario')
     const keyRange = IDBKeyRange.bound(desde_iso_str, ate_iso_str)
-    let req = store.openCursor(keyRange, "next");
+    let req = store.openCursor(keyRange);
     let total_horas = 0;
     req.onsuccess = function(evt) {
       var cursor = evt.target.result;
       if (cursor) {
-        req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
+        // req = store.get(cursor.key);
+        // req.onsuccess = function (cur_event) {
+          let value = cursor.value;
           let tr = document.createElement("tr")
-          let p_data_ini = document.createElement("p")
-          p_data_ini.textContent=value.data_ini
-          let p_data_fim = document.createElement("p")
-          p_data_fim.textContent=value.data_fim
+          let p_data = document.createElement("p")
+          p_data.textContent=value.data
           let td_data = document.createElement("td")
-          td_data.append(p_data_ini)
-          td_data.append(p_data_fim)
+          td_data.append(p_data)
           tr.append(td_data)
 
           let td_duracao = document.createElement("td")
@@ -818,8 +805,8 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
           document.getElementById("table_diario").append(tr)
 
           total_horas+=value.duracao_minutos
-        };
-        cursor.continue();
+          cursor.continue();
+        // };
       } else {
         document.getElementById("tab_diario_horas_total").textContent = formatarTempo(total_horas, "hhmm");
       }
