@@ -646,8 +646,8 @@ document.getElementById("descricao").addEventListener('keyup', function(event){
 
 document.getElementById("btn_sei_triagem").addEventListener('click', function(btn_event){
 
-  let ini = document.getElementById('pesquisa_ini').value
-  let fim = document.getElementById('pesquisa_fim').value
+  let ini = document.getElementById('tab_diario_ini').value
+  let fim = document.getElementById('tab_diario_fim').value
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
@@ -661,13 +661,11 @@ document.getElementById("btn_sei_triagem").addEventListener('click', function(bt
       var cursor = evt.target.result;
       if (cursor) {
         req = store.get(cursor.key);
-        // req.onsuccess = function (cur_event) {
           let value = cursor.value;
           dadosTriagem.push({
             codigo: value.duracao,
             texto: value.atividade_nome
           })
-        // };
         console.debug("triagem de " + value.duracao)
         cursor.continue();
       } else {
@@ -695,49 +693,59 @@ document.getElementById("btn_sei_triagem").addEventListener('click', function(bt
 
 });
 
+document.getElementById("diario_set_hoje").addEventListener('click', function(btn_event){
+  document.getElementById('data').value = datetime2date(new Date())
+});
+
+
 document.getElementById("btn_sei_analise").addEventListener('click', function(btn_event){
+
+  let ini = document.getElementById('tab_diario_ini').value
+  let fim = document.getElementById('tab_diario_fim').value
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
-    const store = tx.objectStore("diario");
-    // store.index('') // vou precisar usar dois index ini/fim
-    // const keyRange = IDBKeyRange.bound()
-    // let req = store.openCursor(keyRange);
-    let req = store.openCursor();
+    let store = tx.objectStore("diario");
+    store = store.index('data_diario')
+    const keyRange = IDBKeyRange.bound(ini, fim)
+    let req = store.openCursor(keyRange, "next");
+    let dadosTriagem = []
     req.onsuccess = function(evt) {
       var cursor = evt.target.result;
-      let dadosAnalise = {} //estou enviando um por vez :(
       if (cursor) {
         req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
-          dadosAnalise = {
-            atividade: value.atividade,
+          let value = cursor.value;
+          dadosTriagem.push({
+            atividade: value.atividade_nome,
             sub_atividade: value.sub_atividade,
-            duracao: value.duracao,
             descricao: value.descricao,
+            codigo: value.duracao,
+            duracao_minutos: (value.duracao_minutos < 60)? value.duracao_minutos+"min" : value.duracao_minutos/60.0 + "h",
+            num_sei: value.num_sei,
             data: value.data,
-          }
-        };
+          })
+        console.debug("análise de " + value.duracao)
         cursor.continue();
-      } 
-      
-      browser.tabs
-      .executeScript({file: "/js/main.js"}) //só deve importar uma vez
-      .then(function(){
-
+      } else {
+        console.debug("===> todos os dados para análise " + dadosTriagem.length)
         browser.tabs
-        .query({active: true, currentWindow: true})
-        .then((tabs)=>{
+        .executeScript({file: "/js/main.js"}) //só deve importar uma vez
+        .then(function(){
 
-          browser.tabs.sendMessage(tabs[0].id, {
-            command: "sei_analisar",
-            dados: dadosAnalise
+          browser.tabs
+          .query({active: true, currentWindow: true})
+          .then((tabs)=>{
+
+            browser.tabs.sendMessage(tabs[0].id, {
+              command: "sei_analisar",
+              dados: dadosTriagem
+            });
           });
-        });
 
-      }).catch(reportExecuteScriptError);
+        }).catch(reportExecuteScriptError);
+      }
+
     };
   };//indexedDB
   

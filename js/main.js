@@ -71,18 +71,44 @@
   // }// function de triagem
 
 
-  var invocado = false
+  // var invocado = false
   function fazerAnalise(dados){
+    console.debug(`Analisar com ${dados.length}`)
+    console.debug(dados)
     let frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body
 
-    //uma vez só:
-    if(!invocado){
-      invocado = true
-      frame.querySelector("#lnkInfraCheck").dispatchEvent(new Event('click'));
-      frame.querySelector("#lnkInfraCheck").dispatchEvent(new Event('click'));
+    //Vodoo: marcar e desmarcar todas as checkboxes SÓ UMA VEZ PARA NÃO APAGAR AS DESCRIÇÕES.
+    // if(!invocado){
+      // invocado = true
+      frame.querySelector("#lnkInfraCheck").dispatchEvent(new MouseEvent('click'));
+      frame.querySelector("#lnkInfraCheck").dispatchEvent(new MouseEvent('click'));
+    // }
+
+    // let sAtiv = "Atividades Comuns - Participar de reuniões e similares"
+    // let sDur = "1h"
+    // let sSub = "Participação em Reunião ou similares"
+
+    let trs = frame.querySelector("#tbAnalise").querySelectorAll("tr")
+    for(di=0; di<dados.length; di++){
+      // pular o TH ou vai dar pau de undefined
+      for(trIndex=1; trIndex < trs.length; trIndex++){
+        bAtiv = trs[trIndex].querySelectorAll("td")[1].textContent.indexOf(dados[di].atividade) == 0 //string exata
+        bDur = trs[trIndex].querySelectorAll("td")[1].textContent.indexOf(dados[di].duracao_minutos) > 0 //parte da string
+        bSub = trs[trIndex].querySelectorAll("td")[2].textContent == dados[di].sub_atividade
+        bVazio = trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value.length == 0
+
+        if(bAtiv && bSub && bDur && bVazio){
+          trs[trIndex].querySelectorAll("td")[0].querySelector("input[type='checkbox']").dispatchEvent(new MouseEvent('click'))
+          trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = `${dados[di].data} ${dados[di].descricao}`
+          break
+        }
+      }
     }
 
     // frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body.querySelector("#tbAnalise").querySelectorAll("tr")[1].textContent.indexOf('vidades')
+    frame.querySelector('#txaInformacaoComplementar').value = "(PGD de Marcel/GIDS3)"
+    frame.querySelector('#selEncaminhamentoAnl').value = 1
+    frame.querySelector('#selFila').value = 24
 
   }
 
