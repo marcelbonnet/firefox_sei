@@ -11,16 +11,9 @@
 <body>
 
   <div class="tabs">
-    <div class="tab">
-      <input type="radio" id="tab1" name="tab-group" checked>
-      <label for="tab1">Evento</label>
-      <div class="content">
-        <table id="table_eventos"></table>
-      </div> <!-- fim da div tab content -->
-    </div> <!-- fim da tab -->
 
     <div class="tab">
-      <input type="radio" id="tab2" name="tab-group">
+      <input type="radio" id="tab2" name="tab-group" checked>
       <label for="tab2">Diário</label>
       <div class="content">
         <table>
@@ -39,6 +32,7 @@
             <td>
               <input type="button" id="btn_sei_triagem" value="Triagem">
               <input type="button" id="btn_sei_analise" value="Análise">
+              <input type="button" id="btn_exportar" value="Exportar" disabled>
             </td>
           </tr>
           <tr>
@@ -105,19 +99,16 @@
               <input type="text" id="numSei">
             </td>
           </tr>
+          <tr>
+            <th></th>
+            <td>
+              <input type="button" id="btn_incluir_diario" class="" value="Incluir Novo">
+              <input type="button" id="btn_editar_diario" disabled="disabled" class="" value="Alterar">
+            </td>
+          </tr>
         </table>
         
         <input type="hidden" id="diario_evento_id">
-        <input type="button" id="btn_incluir_diario" class="" value="Incluir Novo">
-        <input type="button" id="btn_editar_diario" disabled="disabled" class="" value="Alterar">
-
-        <p>Funções por Período:</p>
-        <input type="date" id="pesquisa_ini" value="2022-06-27">
-        <input type="date" id="pesquisa_fim" value="2022-06-28">
-        <br>
-        <input type="button" id="btn_procurar" value="Pesquisar">
-        <input type="button" id="btn_exportar" value="Exportar">
-        
         
 
         <div id="flash"></div>
@@ -128,11 +119,8 @@
 
 
   
-  <p></p>  
-  <!-- <div id="popup-content">
-    <input type="button" class="button teste" value="Testar">
-    <input type="button" class="button listar" value="listar">
-  </div> -->
+  <p>&nbsp;</p>  
+  <p>&nbsp;</p>  
   <script src="pgd.js"></script>
 </body>
 

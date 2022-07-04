@@ -9,6 +9,13 @@
   }
   window.hasRun = true;
 
+  function formatarData(data){
+    let meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+    date = new Date(`${data}T00:00`)
+    console.debug(`${data} => ${date}`)
+    return `${date.getDate()}/${meses[date.getMonth()]}`
+  }
+
   function seiTestar(valor) {
     // removeExistingBeasts();
     // let beastImage = document.createElement("img");
@@ -99,7 +106,7 @@
 
         if(bAtiv && bSub && bDur && bVazio){
           trs[trIndex].querySelectorAll("td")[0].querySelector("input[type='checkbox']").dispatchEvent(new MouseEvent('click'))
-          trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = `${dados[di].data} ${dados[di].descricao}`
+          trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = `${formatarData(dados[di].data)} ${dados[di].descricao}`
           break
         }
       }

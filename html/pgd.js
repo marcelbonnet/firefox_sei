@@ -224,6 +224,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   carregarListaDiario();
 
+  //Carrega a Aba Diário com os dados de hoje
+  document.getElementById("tab2").dispatchEvent(new Event('click'))
+  document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
+
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
@@ -529,7 +533,7 @@ document.getElementById("btn_editar_diario").addEventListener('click', function(
 });
 
 
-// exportar
+//TODO: exportar
 document.getElementById("btn_exportar").addEventListener('click', function(btn_event){
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
@@ -560,64 +564,6 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
     };
   };//indexedDB
 
-});
-
-// procurar para calcular horas no período
-document.getElementById("btn_procurar").addEventListener('click', function(btn_event){
-
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
-    const idb = this.result;
-    const tx = idb.transaction("diario", 'readonly');
-    const store = tx.objectStore("diario");
-    let req = store.openCursor();
-      let total_pgd = 0
-      let horas_pgd = 0
-      let minutos_pgd = 0
-    req.onsuccess = function(evt) {
-      var cursor = evt.target.result;
-      if (cursor) {
-        req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
-          total_pgd+=value.duracao_minutos
-        };
-        cursor.continue();
-      }
-      horas_pgd = Math.trunc(total_pgd/60)
-      minutos_pgd = Math.trunc((total_pgd/60-horas_pgd)*60)
-      document.getElementById("flash").textContent = `${horas_pgd}:${minutos_pgd} horas de PGD.`
-    };
-  };//indexedDB
-
-
-//   let desde = new Date(document.getElementById('pesquisa_ini').value)
-//   let ate =   new Date(document.getElementById('pesquisa_fim').value)
-
-//   desde.setHours(0)
-//   desde.setMinutes(0)
-//   desde.setSeconds(0)
-//   ate.setHours(23)
-//   ate.setMinutes(59)
-//   ate.setSeconds(59)
-// //TODO resolver depois como pesquisar por datas no index
-//   indexedDB.open("pgd",1).onsuccess = function (evt) {
-//     const idb = this.result;
-//     const tx = idb.transaction("eventos", 'readonly');
-//     const store = tx.objectStore("eventos");
-//     // store.index(['data_ini','data_fim'])
-//     let storeIndex = store.index('idx_evento')
-//     console.debug(`${desde} ${ate}`)
-//     let keyRange = IDBKeyRange.bound([desde.getTime(),desde.getTime(),0],[ate.getTime(),ate.getTime(),1000])
-//     // let req = store.openCursor(keyRange);
-//     let req = store.openCursor(keyRange);
-//     req.onsuccess = function(evt) {
-//       var cursor = evt.target.result;
-//       if (cursor) {
-//         console.debug(cursor.value.id)
-//         cursor.continue();
-//       }
-//     };
-//   };//indexedDB
 });
 
 
@@ -755,6 +701,7 @@ document.getElementById("tab2").addEventListener('click', function(btn_event){
   popularTabelaDiario(new Date(), new Date())
   document.getElementById('tab_diario_ini').value = datetime2date(new Date())
   document.getElementById('tab_diario_fim').value = datetime2date(new Date())
+  document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
 });
 
 document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(elem,index){
