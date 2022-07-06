@@ -536,10 +536,12 @@ document.getElementById("btn_editar_diario").addEventListener('click', function(
 //TODO: exportar
 document.getElementById("btn_exportar").addEventListener('click', function(btn_event){
 
+  let saida = document.getElementById('descricao')
+
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
-    const tx = idb.transaction("eventos", 'readonly');
-    const store = tx.objectStore("eventos");
+    const tx = idb.transaction("diario", 'readonly');
+    const store = tx.objectStore("diario");
     let req = store.openCursor();
     let dados = []
     req.onsuccess = function(evt) {
@@ -548,20 +550,35 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
         req = store.get(cursor.key);
         req.onsuccess = function (cur_event) {
           let value = cur_event.target.result;
-          dados.push({
-            data: value.data,
-            atividade: value.atividade,
-            sub_atividade: value.sub_atividade,
-            duracao: value.duracao,
-            descricao: value.descricao,
-            num_sei: value.num_sei,
-            recorrencia: value.recorrencia,
-            encerramento: value.encerramento,
-            });
+          dados.push(value);
         };
         cursor.continue();
+      } else {
+        saida.value = JSON.stringify(dados)
       }
     };
+  };//indexedDB
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("pgd_atividades", 'readonly');
+    const store = tx.objectStore("pgd_atividades");
+    let req = store.openCursor();
+    let dados = []
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          dados.push(value);
+        };
+        cursor.continue();
+      } else {
+        // saida.value = saida.value + '\n' + JSON.stringify(dados)
+      }
+    };
+    
   };//indexedDB
 
 });
