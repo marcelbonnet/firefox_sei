@@ -9,6 +9,7 @@
   </head>
 
 <body>
+  <div id="flash"></div>
 
   <div class="tabs">
 
@@ -32,7 +33,15 @@
             <td>
               <input type="button" id="btn_sei_triagem" value="Triagem">
               <input type="button" id="btn_sei_analise" value="Análise">
+              <input type="button" id="btn_importar" value="Importar">
               <input type="button" id="btn_exportar" value="Exportar">
+              
+              <div id="divImportacao" contenteditable="false">
+                <p><strong>JSON:</strong></p>
+                <textarea id="txtJsonImportacao"></textarea>
+                <input type="button" id="btn_importar_salvar" value="Salvar">
+              </div>
+
             </td>
           </tr>
           <tr>
@@ -111,7 +120,7 @@
         <input type="hidden" id="diario_evento_id">
         
 
-        <div id="flash"></div>
+        
       </div> <!-- fim da div tab content -->
     </div> <!-- fim da tab -->
 

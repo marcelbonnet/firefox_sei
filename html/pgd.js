@@ -785,3 +785,46 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
     };
   };//indexedDB
 }
+
+document.getElementById("btn_importar").addEventListener('click', function(btn_event){
+  let entrada = document.getElementById('divImportacao')
+  entrada.style.display='block'
+});
+
+document.getElementById("btn_importar_salvar").addEventListener('click', function(btn_event){
+
+  let divImportacao = document.getElementById('divImportacao')
+  let txtJsonImportacao = document.getElementById('txtJsonImportacao')
+
+  let dados = []
+  try {
+    dados = JSON.parse(txtJsonImportacao.value)
+  } catch(e){
+    document.getElementById('flash').textContent = e
+    return
+  }
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readwrite');
+    const store = tx.objectStore("diario");
+    
+
+    for(n in dados){
+      let obj = dados[n]
+      delete obj.id
+      let req = store.add(obj);
+      req.onsuccess = function(evt) {
+        var key = evt.target.result;
+        document.getElementById('flash').textContent = `Inserido ${parseInt(n)+1} de ${dados.length} registros.`
+      };
+      req.onerror = function() {
+        document.getElementById('flash').textContent = document.getElementById('flash').textContent + ' ERR: ' + this.error
+      };
+    } //fim for
+  };//indexedDB
+
+  txtJsonImportacao.value=''
+  divImportacao.style.display='none'
+
+});
