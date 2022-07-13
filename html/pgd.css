@@ -1,0 +1,22 @@
+#table_edit {
+	border-collapse: separate;
+	border-spacing: 10px;
+}
+
+#table_edit tr td {
+	border-left: 1px solid #aaa;
+	padding-left: 7px;
+}
+
+#table_diario {
+	border-collapse: separate;
+	border-spacing: 10px;
+}
+
+#table_diario tr td {
+	border-bottom: 1px solid #aaa;
+}
+
+#divImportacao {
+	display: none;
+}

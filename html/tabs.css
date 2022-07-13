@@ -1,0 +1,58 @@
+.tabs {
+  position: relative;
+  min-height: 200px; /* This part sucks */
+  clear: both;
+  margin: 25px 0;
+}
+.tab {
+  float: left;
+}
+.tab label {
+  border-radius: 7px 7px 0px 0px;
+  background: #ccc;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-left: -1px;
+  position: relative;
+  left: 1px;
+}
+.tab [type="radio"] {
+  opacity: 0;
+}
+.content {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  background: white;
+  right: 0;
+  bottom: 0;
+  padding: 20px;
+  border-top: 1px solid #ccc;
+  /*overflow: hidden;*/
+}
+.content > * {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: all 0.3s ease;
+}
+[type="radio"]:focus ~ label {
+  ouline: 2px solid blue;
+}
+[type="radio"] ~ label {
+  color: #666;
+  font-style: italic;
+}
+[type="radio"]:checked ~ label {
+  color: #333;
+  font-style: normal;
+  background: orange;
+  border-bottom: 1px solid white;
+  z-index: 2;
+}
+[type="radio"]:checked ~ label ~ .content {
+  z-index: 1;
+}
+[type="radio"]:checked ~ label ~ .content > * {
+  opacity: 1;
+  transform: translateX(0);
+}
