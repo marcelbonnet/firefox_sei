@@ -31,8 +31,8 @@
 
     "sidebar_action": {
       "default_icon": {
-        "16": "images/folder.png",
-        "32": "images/folder.png"
+        "16": "images/google-docs.png",
+        "32": "images/google-docs.png"
       },
       "default_title": "PGD",
       "default_panel": "html/pgd.html",
