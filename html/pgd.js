@@ -229,6 +229,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     let storage = window.localStorage
     document.getElementById("configInfoComplementares").value = (storage.infoComplementares != undefined)? storage.infoComplementares : ""
     document.getElementById("configPrefixarTextoComData").value = (storage.prefixarTextoComData != undefined)? storage.prefixarTextoComData : "nao"
+
+    document.getElementById("configAnaliseEncaminhamento").value = (storage.analiseEncaminhamento != undefined)? storage.analiseEncaminhamento : ""
+    document.getElementById("configAnaliseFila").value = (storage.analiseFila != undefined)? storage.analiseFila : ""
+
   } catch(e){
     console.error(e)
   }
