@@ -55,6 +55,9 @@ function openDb() {
     store.createIndex('descricao_diario', 'descricao', { unique: false });
     store.createIndex('num_sei_diario', 'num_sei', { unique: false });
 
+    // Inserir a Matriz da SGI Automaticamente ao instalar.
+    inserirPgdGIDS();
+
   };//req
 
   // var reqv2 = indexedDB.open("pgd", 2);
@@ -193,13 +196,13 @@ function onCreated() {
 MENU ITENS
 */
 
-browser.contextMenus.create({
-  id: "pgd-matriz-sgi",
-  title: "Incluir Matriz SGI",
-  //type: "checkbox",
-  contexts: ["all"],
-  //checked : dontInvertState
-}, onCreated);
+// browser.contextMenus.create({
+//   id: "pgd-matriz-sgi",
+//   title: "Incluir Matriz SGI",
+//   //type: "checkbox",
+//   contexts: ["all"],
+//   //checked : dontInvertState
+// }, onCreated);
 
 
 /*
