@@ -17,6 +17,19 @@
 	border-bottom: 1px solid #aaa;
 }
 
-#divImportacao {
+#divImportacao, #divExportacao {
 	display: none;
+}
+
+#divImportacao, #divExportacao {
+	border: 1px solid blue;
+	background-color: #333;
+	color: #00AA00;
+}
+
+#txtJsonImportacao, #btn_importar_salvar, #txtJsonExportacao, #btn_exportar_salvar, #btn_importar_cancelar, #btn_exportar_cancelar {
+	border: 1px solid white;
+	background-color: #111;
+	color: #00FF00;
+	font-style: italic;
 }

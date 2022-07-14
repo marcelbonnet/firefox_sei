@@ -37,9 +37,21 @@
               <input type="button" id="btn_exportar" value="Exportar">
               
               <div id="divImportacao" contenteditable="false">
-                <p><strong>JSON:</strong></p>
-                <textarea id="txtJsonImportacao"></textarea>
-                <input type="button" id="btn_importar_salvar" value="Salvar">
+                <h3>Importar</h3>
+                <p><small>Cole o JSON do seu backup:</small></p>
+                <textarea cols="40" rows="5" id="txtJsonImportacao"></textarea>
+                <p></p>
+                <input type="button" id="btn_importar_salvar" value="Importar o Backup">
+                <input type="button" id="btn_importar_cancelar" value="Cancelar">
+              </div>
+
+              <div id="divExportacao" contenteditable="false">
+                <h3>Exportar</h3>
+                <p><small>Todos os registros existentes no banco de dados foram exportados.</small></p>
+                <p><small>Copie o JSON e salve em um arquivo de backup:</small></p>
+                <textarea cols="40" rows="5" id="txtJsonExportacao"></textarea>
+                <p></p>
+                <input type="button" id="btn_exportar_cancelar" value="Fechar">
               </div>
 
             </td>

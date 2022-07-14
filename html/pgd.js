@@ -533,10 +533,18 @@ document.getElementById("btn_editar_diario").addEventListener('click', function(
 });
 
 
-//TODO: exportar
+document.getElementById("btn_exportar_cancelar").addEventListener('click', function(btn_event){
+  let div = document.getElementById('divExportacao')
+  div.style.display='none'
+});
+
 document.getElementById("btn_exportar").addEventListener('click', function(btn_event){
 
-  let saida = document.getElementById('descricao')
+  let div = document.getElementById('divExportacao')
+  div.style.display='block'
+
+  let saida = document.getElementById('txtJsonExportacao')
+  saida.value = ''
 
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
@@ -795,13 +803,20 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
 document.getElementById("btn_importar").addEventListener('click', function(btn_event){
   let entrada = document.getElementById('divImportacao')
   entrada.style.display='block'
+
+  document.getElementById('txtJsonImportacao').value = ''
+});
+
+document.getElementById("btn_importar_cancelar").addEventListener('click', function(btn_event){
+  let entrada = document.getElementById('divImportacao')
+  entrada.style.display='none'
 });
 
 document.getElementById("btn_importar_salvar").addEventListener('click', function(btn_event){
 
   let divImportacao = document.getElementById('divImportacao')
   let txtJsonImportacao = document.getElementById('txtJsonImportacao')
-
+  
   let dados = []
   try {
     dados = JSON.parse(txtJsonImportacao.value)
