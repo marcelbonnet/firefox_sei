@@ -16,20 +16,6 @@
     return `${date.getDate()}/${meses[date.getMonth()]}`
   }
 
-  function seiTestar(valor) {
-    // removeExistingBeasts();
-    // let beastImage = document.createElement("img");
-    // beastImage.setAttribute("src", beastURL);
-    // beastImage.style.height = "100vh";
-    // beastImage.className = "beastify-image";
-    // document.body.appendChild(beastImage);
-    // var div = document.querySelector("div")
-    // var btn = document.createElement("button")
-    // btn.appendChild(document.createTextNode(valor))
-    // div.appendChild(btn)
-
-  }
-
   function fazerTriagem(dados){
     console.debug("RECEBI: "+ dados.length)
     let frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body
@@ -79,9 +65,10 @@
 
 
   // var invocado = false
-  function fazerAnalise(dados){
-    console.debug(`Analisar com ${dados.length}`)
+  function fazerAnalise(dados, prefixarTextoComData, infoComplementares, analiseEncaminhamento, analiseFila){
+    console.debug(`Analisar ${dados.length} dados.`)
     console.debug(dados)
+    console.debug(`analiseEncaminhamento=${analiseEncaminhamento}. Fila=${analiseFila}`)
     let frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body
 
     //Vodoo: marcar e desmarcar todas as checkboxes SÓ UMA VEZ PARA NÃO APAGAR AS DESCRIÇÕES.
@@ -106,16 +93,16 @@
 
         if(bAtiv && bSub && bDur && bVazio){
           trs[trIndex].querySelectorAll("td")[0].querySelector("input[type='checkbox']").dispatchEvent(new MouseEvent('click'))
-          trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = `${formatarData(dados[di].data)} ${dados[di].descricao}`
+          trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = (prefixarTextoComData)? `${formatarData(dados[di].data)} ${dados[di].descricao}` : `${dados[di].descricao}`
           break
         }
       }
     }
 
     // frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body.querySelector("#tbAnalise").querySelectorAll("tr")[1].textContent.indexOf('vidades')
-    frame.querySelector('#txaInformacaoComplementar').value = "(PGD de Marcel/GIDS3)"
-    frame.querySelector('#selEncaminhamentoAnl').value = 1
-    frame.querySelector('#selFila').value = 24
+    frame.querySelector('#txaInformacaoComplementar').value = infoComplementares
+    frame.querySelector('#selEncaminhamentoAnl').value = analiseEncaminhamento
+    frame.querySelector('#selFila').value = analiseFila
 
   }
 
@@ -127,7 +114,7 @@
     if (message.command === "sei_triar") {
       fazerTriagem(message.dados);
     } else if (message.command === "sei_analisar") {
-      fazerAnalise(message.dados);
+      fazerAnalise(message.dados, message.prefixarTextoComData, message.infoComplementares, message.analiseEncaminhamento, message.analiseFila);
     } else if (message.command === "incluir_evento") {
       console.debug("TESTE de incluir " + message.valor)
       var getting = browser.runtime.getBackgroundPage();

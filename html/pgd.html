@@ -136,6 +136,53 @@
       </div> <!-- fim da div tab content -->
     </div> <!-- fim da tab -->
 
+
+    <div class="tab">
+      <input type="radio" id="tabConfig" name="tab-group">
+      <label for="tabConfig">Config</label>
+      <div class="content">
+        <table id="table_config">
+          <tr>
+            <th colspan="2">PGD Análise</th>
+          </tr>
+          <tr>
+            <th>Informações Complementares:</th>
+            <td>
+              <input type="text" id="configInfoComplementares" placeholder="Fulano/CoordenaçãoXPTO">
+            </td>
+          </tr>
+          <tr>
+            <th>Prefixar a descrição:</th>
+            <td>
+              <select id="configPrefixarTextoComData">
+                <option value="sim">Prefixar com Data</option>
+                <option value="nao">Não prefixar com Data</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <th>Encaminhamento da Análise:</th>
+            <td>
+              <select id="configAnaliseEncaminhamento">
+                <option value="">Nenhum</option>
+                <option value="1">Associar em Fila Após Análise</option>
+                <option value="2">Finalizar Fluxo'Após Análise</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <th>Associar em Fila:</th>
+            <td>
+              <select id="configAnaliseFila">
+                <option value="">Nenhum</option>
+                <option value="24">GIDS3</option>
+              </select>
+            </td>
+          </tr>
+        </table>
+      </div> <!-- fim da div tab content -->
+    </div> <!-- fim da tab -->
+
   </div> <!-- fim todas as tabs -->
 
 

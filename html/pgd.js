@@ -224,6 +224,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   carregarListaDiario();
 
+  // Local Storage
+  try{
+    let storage = window.localStorage
+    document.getElementById("configInfoComplementares").value = (storage.infoComplementares != undefined)? storage.infoComplementares : ""
+    document.getElementById("configPrefixarTextoComData").value = (storage.prefixarTextoComData != undefined)? storage.prefixarTextoComData : "nao"
+  } catch(e){
+    console.error(e)
+  }
+
   //Carrega a Aba Diário com os dados de hoje
   inicializarAbaDiario(false);
   document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
@@ -674,6 +683,25 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
   let ini = document.getElementById('tab_diario_ini').value
   let fim = document.getElementById('tab_diario_fim').value
 
+  let prefixarTextoComData = false
+  let infoComplementares = ""
+  let analiseEncaminhamento = ""
+  let analiseFila = ""
+  try{ 
+    storage = window.localStorage
+    prefixarTextoComData = (storage.prefixarTextoComData!=undefined && storage.prefixarTextoComData == 'sim')? true : false
+    
+    if(storage.prefixarTextoComData!=undefined)
+      infoComplementares = storage.infoComplementares
+    if(storage.analiseEncaminhamento!=undefined)
+      analiseEncaminhamento = storage.analiseEncaminhamento
+    if(storage.analiseFila!=undefined)
+      analiseFila = storage.analiseFila
+
+  } catch(e){
+    console.error(e)
+  }
+
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
@@ -710,7 +738,11 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
 
             browser.tabs.sendMessage(tabs[0].id, {
               command: "sei_analisar",
-              dados: dadosTriagem
+              dados: dadosTriagem,
+              prefixarTextoComData: prefixarTextoComData,
+              infoComplementares: infoComplementares,
+              analiseEncaminhamento: analiseEncaminhamento,
+              analiseFila: analiseFila
             });
           });
 
@@ -849,3 +881,47 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
   divImportacao.style.display='none'
 
 });
+
+/***********************
+  TAB CONFIG
+************************/
+document.getElementById("configInfoComplementares").addEventListener("change", function(){
+  try{
+    let storage = window.localStorage
+    storage.infoComplementares = this.value
+  } catch(e){
+    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    console.error(e)
+  }
+})
+
+document.getElementById("configPrefixarTextoComData").addEventListener("change", function(){
+  try{
+    let storage = window.localStorage
+    storage.prefixarTextoComData = this.value
+  } catch(e){
+    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    console.error(e)
+  }
+})
+
+document.getElementById("configAnaliseEncaminhamento").addEventListener("change", function(){
+  try{
+    let storage = window.localStorage
+    storage.analiseEncaminhamento = this.value
+  } catch(e){
+    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    console.error(e)
+  }
+})
+
+
+document.getElementById("configAnaliseFila").addEventListener("change", function(){
+  try{
+    let storage = window.localStorage
+    storage.analiseFila = this.value
+  } catch(e){
+    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    console.error(e)
+  }
+})
