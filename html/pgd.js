@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   carregarListaDiario();
 
   //Carrega a Aba Diário com os dados de hoje
-  document.getElementById("tab2").dispatchEvent(new Event('click'))
+  inicializarAbaDiario(false);
   document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
 
 
@@ -714,11 +714,17 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
   
 });
 
-document.getElementById("tab2").addEventListener('click', function(btn_event){
+function inicializarAbaDiario(dispararEvento=false){
   popularTabelaDiario(new Date(), new Date())
   document.getElementById('tab_diario_ini').value = datetime2date(new Date())
   document.getElementById('tab_diario_fim').value = datetime2date(new Date())
-  document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
+  if(dispararEvento){
+    document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
+  }
+}
+
+document.getElementById("tab2").addEventListener('click', function(btn_event){
+  inicializarAbaDiario(true);
 });
 
 document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(elem,index){
