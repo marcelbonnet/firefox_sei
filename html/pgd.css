@@ -33,3 +33,33 @@
 	color: #00FF00;
 	font-style: italic;
 }
+
+#table_config th[colspan] {
+	text-align: center;
+	background-color: #ccc;
+}
+
+.icon {
+	padding-left: 25px;
+	background-repeat: no-repeat;
+	background-size: 16px 16px;
+}
+
+.icon-edit {
+	background-image: url(../images/pen.png);
+}
+.icon-fav {
+	background-image: url(../images/starw.png);
+}
+.icon-fav-true {
+	background-image: url(../images/star.png);
+}
+.icon-delete {
+	background-image: url(../images/bin.png);
+}
+.icon-import {
+	background-image: url(../images/import.png);
+}
+.icon-export {
+	background-image: url(../images/export.png);
+}
