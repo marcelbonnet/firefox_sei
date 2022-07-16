@@ -3,14 +3,13 @@
 // BANCO DE DADOS
 // ===========================================
 
-const DB_NAME = 'pgd';
-const DB_VERSION = 1; // Use a long long for this value (don't use a float)
-
 var db;
+
+const DB_VERSAO = 2
 
 function openDb() {
   console.log("openDb ...");
-  var req = indexedDB.open(DB_NAME, DB_VERSION);
+  var req = indexedDB.open('pgd', DB_VERSAO);
   req.onsuccess = function (evt) {
     // Equal to: db = req.result;
     db = this.result;
@@ -21,61 +20,58 @@ function openDb() {
   };
 
   req.onupgradeneeded = function (evt) {
-    console.log("openDb.onupgradeneeded");
+    console.debug(evt);
+    console.log(`Abrindo DB VERSÃO ${evt.target.result.version}. Antiga=${evt.oldVersion} Nova=${evt.newVersion}`);
 
-    var store = evt.currentTarget.result.createObjectStore(
-      "pgd_atividades", { keyPath: 'id', autoIncrement: true });
-    store.createIndex('ativ_area', ['area', 'atividade'], { unique: true });
-    store.createIndex('ativ_descricao', 'descricao', { unique: false });
-    store.createIndex('ativ_sub_atividades', 'sub_atividades', { unique: false });
-    store.createIndex('ativ_duracao', 'duracao', { unique: false });
-    
+    for(let versao=evt.oldVersion; versao < evt.newVersion; versao++){
+      switch(versao){
+        case 0:
+          console.log(`Atualizando DB para versão ${parseInt(versao)+1}`);
 
-    var store = evt.currentTarget.result.createObjectStore(
-      "eventos", { keyPath: 'id', autoIncrement: true });
-    store.createIndex('data_ini', 'data_ini', { unique: false });
-    store.createIndex('data_fim', 'data_fim', { unique: false });
-    store.createIndex('recorrencia', 'recorrencia', { unique: false });
-    store.createIndex('encerramento', 'encerramento', { unique: false });
-    store.createIndex('atividade', 'atividade', { unique: false });
-    store.createIndex('sub_atividade', 'sub_atividade', { unique: false });
-    store.createIndex('duracao_evento', 'duracao', { unique: false });
-    store.createIndex('duracao_minutos_evento', 'duracao_minutos', { unique: false });
-    store.createIndex('descricao', 'descricao', { unique: false });
-    store.createIndex('num_sei', 'num_sei', { unique: false });
+          var store = evt.currentTarget.result.createObjectStore(
+            "pgd_atividades", { keyPath: 'id', autoIncrement: true });
+          store.createIndex('ativ_area', ['area', 'atividade'], { unique: true });
+          store.createIndex('ativ_descricao', 'descricao', { unique: false });
+          store.createIndex('ativ_sub_atividades', 'sub_atividades', { unique: false });
+          store.createIndex('ativ_duracao', 'duracao', { unique: false });
+          
 
-    var store = evt.currentTarget.result.createObjectStore(
-      "diario", { keyPath: 'id', autoIncrement: true });
-    store.createIndex('data_diario', 'data', { unique: false });
-    store.createIndex('atividade_diario', 'atividade', { unique: false });
-    store.createIndex('atividade_nome_diario', 'atividade_nome', { unique: false });
-    store.createIndex('sub_atividade_diario', 'sub_atividade', { unique: false });
-    store.createIndex('duracao_diario', 'duracao', { unique: false });
-    store.createIndex('duracao_minutos_diario', 'duracao_minutos', { unique: false });
-    store.createIndex('descricao_diario', 'descricao', { unique: false });
-    store.createIndex('num_sei_diario', 'num_sei', { unique: false });
+          var store = evt.currentTarget.result.createObjectStore(
+            "eventos", { keyPath: 'id', autoIncrement: true });
+          store.createIndex('data_ini', 'data_ini', { unique: false });
+          store.createIndex('data_fim', 'data_fim', { unique: false });
+          store.createIndex('recorrencia', 'recorrencia', { unique: false });
+          store.createIndex('encerramento', 'encerramento', { unique: false });
+          store.createIndex('atividade', 'atividade', { unique: false });
+          store.createIndex('sub_atividade', 'sub_atividade', { unique: false });
+          store.createIndex('duracao_evento', 'duracao', { unique: false });
+          store.createIndex('duracao_minutos_evento', 'duracao_minutos', { unique: false });
+          store.createIndex('descricao', 'descricao', { unique: false });
+          store.createIndex('num_sei', 'num_sei', { unique: false });
+
+          var store = evt.currentTarget.result.createObjectStore(
+            "diario", { keyPath: 'id', autoIncrement: true });
+          store.createIndex('data_diario', 'data', { unique: false });
+          store.createIndex('atividade_diario', 'atividade', { unique: false });
+          store.createIndex('atividade_nome_diario', 'atividade_nome', { unique: false });
+          store.createIndex('sub_atividade_diario', 'sub_atividade', { unique: false });
+          store.createIndex('duracao_diario', 'duracao', { unique: false });
+          store.createIndex('duracao_minutos_diario', 'duracao_minutos', { unique: false });
+          store.createIndex('descricao_diario', 'descricao', { unique: false });
+          store.createIndex('num_sei_diario', 'num_sei', { unique: false });
+          break;
+        case 1:
+          console.log(`Atualizando DB para versão ${parseInt(versao)+1}`);
+          evt.currentTarget.result.deleteObjectStore('eventos')
+          evt.target.transaction.objectStore('diario').createIndex('diario_favorito', 'favorito', {unique:false})
+          break;
+      }
+    }
 
     // Inserir a Matriz da SGI Automaticamente ao instalar.
     inserirPgdGIDS();
 
   };//req
-
-  // var reqv2 = indexedDB.open("pgd", 2);
-  // reqv2.onsuccess = function (evt) {
-  //   console.log("Abrindo versão 2");
-  // };
-  // reqv2.onerror = function (evt) {
-  //   console.error("versão 2:", evt.target.errorCode);
-  // };
-  // reqv2.onupgradeneeded = function (evt) {
-  //   console.log("Versão 2: onupgradeneeded");
-
-  //   var store = evt.target.transaction.objectStore("diario")
-  //   if(!store.indexNames.contains('atividade_nome_diario')){
-  //     store.createIndex('atividade_nome_diario', 'atividade_nome', {unique:false})
-  //   }
-    
-  // };//reqv2
 
 
 }
@@ -524,37 +520,59 @@ function inserirPgdGIDS(){
       ])
   }
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  // indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+  //   const idb = this.result;
+  //   const tx = idb.transaction("pgd_atividades", 'readwrite');
+  //   const store = tx.objectStore("pgd_atividades");
+
+  //   store.index('id')
+  //   const keyRange = IDBKeyRange.lowerBound(1)
+  //   req = store.openCursor(keyRange)
+  //   req.onsuccess = function(event){
+  //     console.debug("Já existem registros de Matriz Atividades.")
+  //   }
+  // };
+
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("pgd_atividades", 'readwrite');
     const store = tx.objectStore("pgd_atividades");
 
-    let req;
-    try {
-      // req = store.add(obj);
-      for(i=0; i<tabela.length; i++){
-        req = store.add({
-          area: 'SGI',
-          atividade: tabela[i][0],
-          descricao: tabela[i][1],
-          sub_atividades: tabela[i][2],
-          duracao: tabela[i][3]
-        })
-      }
-    } catch (e) {
-      console.error("Matriz Atividade " + e.error)
-      throw e;
-    }
-
+    const keyRange = IDBKeyRange.lowerBound(1)
+    req = store.openCursor(keyRange)
     req.onsuccess = function(event){
-      var key = event.target.result;
-      // console.debug("#"+key);
-    }
+      let cursor = event.target.result
+      if(cursor){
+        console.debug("Já existem registros de Matriz Atividades.")
+      } else{
+        console.debug("Inserindo a Matriz Atividades.")
+        let req;
+        try {
+          // req = store.add(obj);
+          for(i=0; i<tabela.length; i++){
+            req = store.add({
+              area: 'SGI',
+              atividade: tabela[i][0],
+              descricao: tabela[i][1],
+              sub_atividades: tabela[i][2],
+              duracao: tabela[i][3]
+            })
+          }
+        } catch (e) {
+          console.error("Matriz Atividade " + e.error)
+          throw e;
+        }
 
-    req.onerror = function() {
-      console.error(i + " " + atividades[i][0] + " => " + this.error);
-    };
-    
+        req.onsuccess = function(event){
+          var key = event.target.result;
+          // console.debug("#"+key);
+        }
+
+        req.onerror = function() {
+          console.error(i + " " + atividades[i][0] + " => " + this.error);
+        };
+      }
+    }
   };//indexedDB
 
 

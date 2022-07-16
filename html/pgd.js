@@ -1,3 +1,11 @@
+
+var SUCCESS = 0;
+var WARN = 1;
+var ERROR = 2;
+
+const DB_VERSAO = 2
+
+
 if( typeof Element.prototype.clearChildren === 'undefined' ) {
     Object.defineProperty(Element.prototype, 'clearChildren', {
       configurable: true,
@@ -118,10 +126,6 @@ backgroundListener() // Funciona mas lança esse erro no console: Uncaught TypeE
 //   bg.listarTiposTarefas()
 // })
 
-var SUCCESS = 0;
-var WARN = 1;
-var ERROR = 2;
-
 function flash(msg, level){
   let classe = ''
   switch(level){
@@ -216,7 +220,7 @@ function carregarListaFavoritos(){
   removeOptions(lista)
   lista.add(createOptionSelecione())
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     const store = tx.objectStore("diario");
@@ -271,7 +275,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
 
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("pgd_atividades", 'readonly');
     const store = tx.objectStore("pgd_atividades");
@@ -299,7 +303,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     sel_subAtividade.add(createOptionSelecione())
     sel_duracao.add(createOptionSelecione())
 
-    indexedDB.open("pgd",1).onsuccess = function (evt) {
+    indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
       const idb = this.result;
       const tx = idb.transaction("pgd_atividades", 'readonly');
       const store = tx.objectStore("pgd_atividades");
@@ -327,7 +331,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       };
     };//indexedDB
 
-    indexedDB.open("pgd",1).onsuccess = function (evt) {
+    indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
       const idb = this.result;
       const tx = idb.transaction("pgd_atividades", 'readonly');
       const store = tx.objectStore("pgd_atividades");
@@ -377,7 +381,7 @@ function putEventoDiario(novo){
   // else
     table_name = "diario"
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction(table_name, 'readwrite');
     const store = tx.objectStore(table_name);
@@ -485,7 +489,7 @@ function carregarDiarioParaEdicao(diario_id){
 
   btn_editar_diario.removeAttribute('disabled')
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     const store = tx.objectStore("diario");
@@ -548,7 +552,7 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
   let saida = document.getElementById('txtJsonExportacao')
   saida.value = ''
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     const store = tx.objectStore("diario");
@@ -569,7 +573,7 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
     };
   };//indexedDB
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("pgd_atividades", 'readonly');
     const store = tx.objectStore("pgd_atividades");
@@ -622,7 +626,7 @@ document.getElementById("btn_sei_triagem").addEventListener('click', function(bt
   let ini = document.getElementById('tab_diario_ini').value
   let fim = document.getElementById('tab_diario_fim').value
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     let store = tx.objectStore("diario");
@@ -695,7 +699,7 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
     console.error(e)
   }
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     let store = tx.objectStore("diario");
@@ -791,7 +795,7 @@ function removerDiario(event){
   let id = event.target.getAttribute('data-id')
   console.debug(`remover ${id}`)
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readwrite');
     const store = tx.objectStore("diario");
@@ -814,7 +818,7 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
   document.getElementById("table_diario").clearChildren();
   document.getElementById("tab_diario_horas_total").textContent="";
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     let store = tx.objectStore("diario");
@@ -905,7 +909,7 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
     return
   }
 
-  indexedDB.open("pgd",1).onsuccess = function (evt) {
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readwrite');
     const store = tx.objectStore("diario");
