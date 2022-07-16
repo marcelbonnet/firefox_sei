@@ -224,10 +224,11 @@ function carregarListaFavoritos(){
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     const store = tx.objectStore("diario");
+    // store = store.index('diario_favorito')
+    // const keyRange = IDBKeyRange.lowerBound(1)
     let req = store.openCursor();
     req.onsuccess = function(evt) {
       var cursor = evt.target.result;
-
       if (cursor) {
         req = store.get(cursor.key);
         req.onsuccess = function (cur_event) {
@@ -235,7 +236,9 @@ function carregarListaFavoritos(){
           opt = document.createElement("option")
           opt.value = value.id
           opt.text = `#${value.id} ${value.data} ${value.descricao.substring(0,20)}`
-          lista.add(opt)
+          
+          if(value.favorito == 1)
+            lista.add(opt)
         };
         cursor.continue();
       }
@@ -489,6 +492,17 @@ function carregarDiarioParaEdicao(diario_id){
 
   btn_editar_diario.removeAttribute('disabled')
 
+  if(diario_id==""){
+    diario_evento_id.value = 0
+    data.value = ''
+    atividade.value = 0
+    descricao.value = ''
+    num_sei.value = ''
+    duracao.value = 0
+    sub_atividade.value = 0
+    return
+  }
+
   indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
@@ -602,11 +616,15 @@ function navegarEvento(direcao){
   let lista = document.getElementById('lista_favorito');
   let selectedIndex = lista.selectedIndex
   if(direcao){
-    if(selectedIndex+1 >= lista.length) return;
-    lista.selectedIndex = selectedIndex+1
+    if(selectedIndex+1 >= lista.length)
+      lista.selectedIndex = 0;
+    else
+      lista.selectedIndex = selectedIndex+1
   } else {
-    if(selectedIndex-1 < 0) return;
-    lista.selectedIndex = selectedIndex-1
+    if(selectedIndex-1 < 0)
+      lista.selectedIndex = lista.length-1;
+    else
+      lista.selectedIndex = selectedIndex-1
   }
   lista.dispatchEvent(new Event('change'))
 }
@@ -789,6 +807,23 @@ function editarDiario(event){
 function favoritarDiario(event){
   let id = event.target.getAttribute('data-id')
   console.debug(`favoritar ${id}`)
+
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readwrite');
+    const store = tx.objectStore("diario");
+    const req = store.get(parseInt(id))
+    req.onsuccess = function(event){
+      let dados = event.target.result
+      dados.favorito = (dados.favorito==undefined || dados.favorito==0)? 1 : 0
+      console.debug(`${dados.id} virou um favorito? ${dados.favorito==1}`)
+      store.put(dados).onsuccess = function(event){
+        flash(`ID #${id} ${(dados.favorito==1)? 'é um favorito.':'deixou de ser um favorito.'}`, SUCCESS)
+        document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
+        carregarListaFavoritos();
+      }
+    }
+  };//indexedDB
 }
 
 function removerDiario(event){
@@ -845,7 +880,11 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
             a_edit.addEventListener('click', function(e){editarDiario(e)})
           td_data.append(a_edit)
             let a_fav = document.createElement("a")
-            a_fav.setAttribute("class", "icon icon-fav")
+            if(value.favorito==undefined || value.favorito==0){
+              a_fav.setAttribute("class", "icon icon-fav")
+            } else {
+              a_fav.setAttribute("class", "icon icon-fav-true")
+            }
             a_fav.setAttribute("data-id", value.id)
             a_fav.setAttribute('href','#')
             a_fav.setAttribute('title','Favoritar')
