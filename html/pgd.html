@@ -31,8 +31,8 @@
           <tr>
             <th>   </th>
             <td>
-              <input type="button" id="btn_sei_triagem" value="Triagem">
-              <input type="button" id="btn_sei_analise" value="Análise">
+              <input type="button" id="btn_sei_triagem" class="icon icon-triar" value="Triagem">
+              <input type="button" id="btn_sei_analise" class="icon icon-analisar" value="Análise">
             </td>
           </tr>
           <tr>
@@ -53,16 +53,20 @@
       <div class="content">
         <table id="table_edit">
           <tr>
-            <th>Editar</th>
+            <th>Favoritos</th>
             <td>
-              <select id="lista_diario"></select> <a href="#" id="link_evento_anterior">&lt;&lt;</a> <a href="#" id="link_evento_posterior">&gt;&gt;</a>
+              <select id="lista_favorito"></select>
+              &nbsp;
+              <a href="#" id="link_evento_favorito" class="icon icon-fav-true" title="Remover dos favoritos"></a>
+              <a href="#" id="link_evento_anterior" class="icon icon-anterior" title="Carregar favorito anterior"></a> 
+              <a href="#" id="link_evento_posterior" class="icon icon-proximo" title="Carregar favorito posterior"></a>
           </td>
           </tr>
           <tr>
             <th>Data</th>
             <td>
               <input type="date" id="data">
-              <a href="#" id="diario_set_hoje">Hoje</a>
+              <a href="#" id="diario_set_hoje" class="icon icon-calendar" title="Preencher com a data de hoje">Hoje</a>
             </td>
           </tr>
           <tr>

@@ -118,6 +118,35 @@ backgroundListener() // Funciona mas lança esse erro no console: Uncaught TypeE
 //   bg.listarTiposTarefas()
 // })
 
+var SUCCESS = 0;
+var WARN = 1;
+var ERROR = 2;
+
+function flash(msg, level){
+  let classe = ''
+  switch(level){
+    case SUCCESS: 
+      classe = 'flash-success'
+      break;
+    case WARN: 
+      classe = 'flash-warn'
+      break;
+    case ERROR: 
+      classe = 'flash-error'
+      break;
+    default:
+      classe = 'flash-success'
+  }
+  console.debug(`class=${level}/${classe}`)
+  document.getElementById("flash").setAttribute('class', classe)
+  document.getElementById("flash").textContent = msg
+
+  setTimeout(function(){
+    document.getElementById("flash").setAttribute('class', 'flash-none')
+    document.getElementById("flash").textContent = ''    
+  }, 7000)
+}
+
 
 function removeOptions(selectElement) {
    var i, L = selectElement.options.length - 1;
@@ -181,8 +210,8 @@ function exibirDuracao(){
 }
 
 
-function carregarListaDiario(){
-  let lista = document.getElementById('lista_diario')
+function carregarListaFavoritos(){
+  let lista = document.getElementById('lista_favorito')
 
   removeOptions(lista)
   lista.add(createOptionSelecione())
@@ -222,7 +251,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   sel_subAtividade.add(createOptionSelecione())
   sel_duracao.add(createOptionSelecione())
 
-  carregarListaDiario();
+  carregarListaFavoritos();
 
   // Local Storage
   try{
@@ -386,11 +415,11 @@ function putEventoDiario(novo){
         req_add = store.add(obj)
         req_add.onsuccess = function(event){
           var key = event.target.result;
-          document.getElementById('flash').textContent = "Inserido com Id #"+key
+          flash("Inserido com Id #"+key, SUCCESS)
         }
 
         req_add.onerror = function() {
-          document.getElementById('flash').textContent = this.error
+          flash(this.error, ERROR)
         };
       } else {
         // req_update = store.put(obj, diario_evento_id)
@@ -429,10 +458,10 @@ function putEventoDiario(novo){
           req_update = store.put(dados)
           req_update.onsuccess = function(event){
             var key = event.target.result;
-            document.getElementById('flash').textContent = "Atualizei Id #"+key
+            flash("Atualizei Id #"+key, SUCCESS)
           }
           req_update.onerror = function() {
-            document.getElementById('flash').textContent = this.error
+            flash(this.error, ERROR)
           };
         }
       }
@@ -443,51 +472,8 @@ function putEventoDiario(novo){
     
   };//indexedDB
 }
-// removi essa combo
-// document.getElementById("tipo_evento").addEventListener('change', function(btn_event){
 
-//   let tipo_evento = document.getElementById('tipo_evento')
-//   let lista = document.getElementById('lista_diario_evento')
-
-//   removeOptions(lista)
-//   lista.add(createOptionSelecione())
-
-//   indexedDB.open("pgd",1).onsuccess = function (evt) {
-//     const idb = this.result;
-//     let table_name = "eventos"
-    
-//     if(tipo_evento.value === "diario")
-//       table_name = "diario"
-//     else if(tipo_evento.value === "evento")
-//       table_name = "eventos"
-//     else
-//       return;
-
-//     const tx = idb.transaction(table_name, 'readonly');
-//     const store = tx.objectStore(table_name);
-//     let req = store.openCursor();
-//     req.onsuccess = function(evt) {
-//       var cursor = evt.target.result;
-
-//       if (cursor) {
-//         req = store.get(cursor.key);
-//         req.onsuccess = function (cur_event) {
-//           let value = cur_event.target.result;
-//           opt = document.createElement("option")
-//           opt.value = value.id
-//           opt.text = `#${value.id} ${value.data_ini}`
-//           lista.add(opt)
-//         };
-//         cursor.continue();
-//       }
-//     };
-//   };//indexedDB
-// });
-
-
-// carrega o form com registro de evento/diário do db
-document.getElementById("lista_diario").addEventListener('change', function(btn_event){
-
+function carregarDiarioParaEdicao(diario_id){
   let data = document.getElementById('data')
   let atividade = document.getElementById('atividade')
   let duracao = document.getElementById('duracao')
@@ -499,13 +485,14 @@ document.getElementById("lista_diario").addEventListener('change', function(btn_
 
   btn_editar_diario.removeAttribute('disabled')
 
-  let lista = document.getElementById('lista_diario')
-
   indexedDB.open("pgd",1).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
     const store = tx.objectStore("diario");
-    let req = store.openCursor();
+    
+    const key = IDBKeyRange.only(parseInt(diario_id))
+
+    let req = store.openCursor(key);
     req.onsuccess = function(evt) {
       var cursor = evt.target.result;
 
@@ -513,7 +500,6 @@ document.getElementById("lista_diario").addEventListener('change', function(btn_
         req = store.get(cursor.key);
         req.onsuccess = function (cur_event) {
           let value = cur_event.target.result;
-          if(value.id == lista.value){
             diario_evento_id.value = value.id
             data.value = value.data
             atividade.value = value.atividade
@@ -524,25 +510,28 @@ document.getElementById("lista_diario").addEventListener('change', function(btn_
               duracao.value = value.duracao
               sub_atividade.value = value.sub_atividade
             }, 600)  
-          }
         };
-        cursor.continue();
       }
     };
   };//indexedDB
-  
+}
+
+// carrega o form com registro de evento/diário do db
+document.getElementById("lista_favorito").addEventListener('change', function(btn_event){
+  let lista = document.getElementById('lista_favorito')
+  carregarDiarioParaEdicao(lista.value)
 });
 
 document.getElementById("btn_incluir_diario").addEventListener('click', function(btn_event){
   putEventoDiario(true)
-  carregarListaDiario();
+  carregarListaFavoritos();
 });
 
 document.getElementById("btn_editar_diario").addEventListener('click', function(btn_event){
   let btn_editar_diario = document.getElementById('btn_editar_diario')
   btn_editar_diario.setAttribute('disabled','')
   putEventoDiario(false)
-  carregarListaDiario();
+  carregarListaFavoritos();
 });
 
 
@@ -606,7 +595,7 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
 
 
 function navegarEvento(direcao){
-  let lista = document.getElementById('lista_diario');
+  let lista = document.getElementById('lista_favorito');
   let selectedIndex = lista.selectedIndex
   if(direcao){
     if(selectedIndex+1 >= lista.length) return;
@@ -786,6 +775,40 @@ document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(
   });
 })
 
+function editarDiario(event){
+  let id = event.target.getAttribute('data-id')
+  console.debug(`editar ${id}`)
+  carregarDiarioParaEdicao(id)
+  document.getElementById("tab3").checked = true
+}
+
+function favoritarDiario(event){
+  let id = event.target.getAttribute('data-id')
+  console.debug(`favoritar ${id}`)
+}
+
+function removerDiario(event){
+  let id = event.target.getAttribute('data-id')
+  console.debug(`remover ${id}`)
+
+  indexedDB.open("pgd",1).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readwrite');
+    const store = tx.objectStore("diario");
+
+    
+    const key = IDBKeyRange.only(parseInt(id))
+    const req = store.delete(key)
+
+    req.onsuccess = function(){
+      flash(`ID #${id} foi removido.`, SUCCESS)
+      document.getElementById("tab_diario_ini").dispatchEvent(new Event('change'))
+    }
+    
+  };//indexedDB
+}
+
+
 function popularTabelaDiario(desde_iso_str, ate_iso_str){
   
   document.getElementById("table_diario").clearChildren();
@@ -810,6 +833,27 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
           p_data.textContent=value.data
           let td_data = document.createElement("td")
           td_data.append(p_data)
+            let a_edit = document.createElement("a")
+            a_edit.setAttribute("class", "icon icon-edit")
+            a_edit.setAttribute("data-id", value.id)
+            a_edit.setAttribute('href','#')
+            a_edit.setAttribute('title','Editar')
+            a_edit.addEventListener('click', function(e){editarDiario(e)})
+          td_data.append(a_edit)
+            let a_fav = document.createElement("a")
+            a_fav.setAttribute("class", "icon icon-fav")
+            a_fav.setAttribute("data-id", value.id)
+            a_fav.setAttribute('href','#')
+            a_fav.setAttribute('title','Favoritar')
+            a_fav.addEventListener('click', function(e){favoritarDiario(e)})
+          td_data.append(a_fav)
+            let a_delete = document.createElement("a")
+            a_delete.setAttribute("class", "icon icon-delete")
+            a_delete.setAttribute("data-id", value.id)
+            a_delete.setAttribute('href','#')
+            a_delete.setAttribute('title','Remover')
+            a_delete.addEventListener('click', function(e){removerDiario(e)})
+          td_data.append(a_delete)
           tr.append(td_data)
 
           let td_duracao = document.createElement("td")
@@ -857,7 +901,7 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
   try {
     dados = JSON.parse(txtJsonImportacao.value)
   } catch(e){
-    document.getElementById('flash').textContent = e
+    flash(e, ERROR)
     return
   }
 
@@ -873,10 +917,10 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
       let req = store.add(obj);
       req.onsuccess = function(evt) {
         var key = evt.target.result;
-        document.getElementById('flash').textContent = `Inserido ${parseInt(n)+1} de ${dados.length} registros.`
+        flash(`Inserido ${parseInt(n)+1} de ${dados.length} registros.`, SUCCESS)
       };
       req.onerror = function() {
-        document.getElementById('flash').textContent = document.getElementById('flash').textContent + ' ERR: ' + this.error
+        flash(document.getElementById('flash').textContent + ' ERR: ' + this.error, ERROR)
       };
     } //fim for
   };//indexedDB
@@ -894,7 +938,7 @@ document.getElementById("configInfoComplementares").addEventListener("change", f
     let storage = window.localStorage
     storage.infoComplementares = this.value
   } catch(e){
-    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    flash(`Seu navegador não tem suporte para salvar a configuração.`,ERROR)
     console.error(e)
   }
 })
@@ -904,7 +948,7 @@ document.getElementById("configPrefixarTextoComData").addEventListener("change",
     let storage = window.localStorage
     storage.prefixarTextoComData = this.value
   } catch(e){
-    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    flash(`Seu navegador não tem suporte para salvar a configuração.`, ERROR)
     console.error(e)
   }
 })
@@ -914,7 +958,7 @@ document.getElementById("configAnaliseEncaminhamento").addEventListener("change"
     let storage = window.localStorage
     storage.analiseEncaminhamento = this.value
   } catch(e){
-    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    flash(`Seu navegador não tem suporte para salvar a configuração.`,ERROR)
     console.error(e)
   }
 })
@@ -925,7 +969,7 @@ document.getElementById("configAnaliseFila").addEventListener("change", function
     let storage = window.localStorage
     storage.analiseFila = this.value
   } catch(e){
-    document.getElementById("flash").textContent = `Seu navegador não tem suporte para salvar a configuração.`
+    flash(`Seu navegador não tem suporte para salvar a configuração.`,ERROR)
     console.error(e)
   }
 })
