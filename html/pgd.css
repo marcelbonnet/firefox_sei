@@ -1,3 +1,33 @@
+body * {
+	font-family: arial;
+}
+
+#flash {
+	padding: 10px;
+	border-radius: 7px;
+	transform: translateX(0%);
+  	transition: all 0.3s ease;
+}
+
+.flash-none {
+	background-color: #fff;
+	color: #000;
+}
+.flash-success {
+	background-color: #44ff77;
+	color: #000;
+}
+
+.flash-warn {
+	background-color: #ffbb77;
+	color: #000;
+}
+
+.flash-error {
+	background-color: #ff7777;
+	color: #000;
+}
+
 #table_edit {
 	border-collapse: separate;
 	border-spacing: 10px;
@@ -62,4 +92,19 @@
 }
 .icon-export {
 	background-image: url(../images/export.png);
+}
+.icon-anterior {
+	background-image: url(../images/previous.png);
+}
+.icon-proximo {
+	background-image: url(../images/next.png);
+}
+.icon-calendar {
+	background-image: url(../images/calendar.png);
+}
+.icon-analisar {
+	background-image: url(../images/pgd_analisar.png);
+}
+.icon-triar {
+	background-image: url(../images/pgd_triar.png);
 }
