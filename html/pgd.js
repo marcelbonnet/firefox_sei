@@ -126,7 +126,7 @@ backgroundListener() // Funciona mas lança esse erro no console: Uncaught TypeE
 //   bg.listarTiposTarefas()
 // })
 
-function flash(msg, level){
+function flash(msg, level, htmlFormat=false){
   let classe = ''
   switch(level){
     case SUCCESS: 
@@ -143,7 +143,10 @@ function flash(msg, level){
   }
   console.debug(`class=${level}/${classe}`)
   document.getElementById("flash").setAttribute('class', classe)
-  document.getElementById("flash").textContent = msg
+  if(htmlFormat)
+    document.getElementById("flash").innerHTML = msg
+  else
+    document.getElementById("flash").textContent = msg
 
   setTimeout(function(){
     document.getElementById("flash").setAttribute('class', 'flash-none')
@@ -644,7 +647,7 @@ document.getElementById("link_evento_posterior").addEventListener('click', funct
 document.getElementById("descricao").addEventListener('keyup', function(event){
   let desc = document.getElementById("descricao").value
   let max = document.getElementById("descricao").getAttribute('maxlength')
-  document.getElementById("descricao_count").textContent = max - desc.length
+  document.getElementById("descricao_count").textContent = desc.length
 });
 
 
@@ -863,6 +866,16 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
   document.getElementById("table_diario").clearChildren();
   document.getElementById("tab_diario_horas_total").textContent="";
 
+  //agrupamento por código da duração (atividade/duração)
+  let grupos = [
+    {
+      codigo: null, //código da duração da atividade
+      qtde: null,   //qtde de registros com esse código
+      atividade: null,
+      duracao_minutos: null,
+    }
+    ] 
+
   indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("diario", 'readonly');
@@ -923,11 +936,46 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
           tr.append(td_desc)
           document.getElementById("table_diario").append(tr)
 
+          // verificando se há "duração código" duplicado no período
+          let isAgrupado = false
+          for(let gi=0; gi<grupos.length; gi++){
+            if(grupos[gi].codigo == value.duracao || grupos[gi].codigo == null){
+              grupos[gi].codigo = value.duracao
+              grupos[gi].qtde+=1
+              grupos[gi].atividade=value.atividade_nome
+              grupos[gi].duracao_minutos=value.duracao_minutos
+              isAgrupado = true
+              break
+            } 
+          }
+          if(!isAgrupado){
+            grupos.push({
+                codigo: value.duracao,
+                qtde: 1,
+                atividade: value.atividade_nome,
+                duracao_minutos: value.duracao_minutos
+              })
+          }
+
           total_horas+=value.duracao_minutos
           cursor.continue();
         // };
       } else {
         document.getElementById("tab_diario_horas_total").textContent = formatarTempo(total_horas, "hhmm");
+
+        let avisar = false
+        let msg = "<strong>Atividade de mesma duração repetida!</strong><br>"
+        for(let i=0; i<grupos.length; i++){
+          if(grupos[i].qtde > 1){
+            avisar = true
+            msg += `${grupos[i].qtde} registros ${grupos[i].duracao_minutos}min/${grupos[i].atividade}<br>`
+            console.debug(msg)
+          }
+        }
+        msg += "<small>O SEI vai descartar essas horas!</small>"
+        if(avisar)
+          flash(`${msg}`, ERROR, true)
+        
       }
     };
   };//indexedDB
