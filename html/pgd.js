@@ -1026,6 +1026,8 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
     } //fim for
   };//indexedDB
 
+  carregarListaFavoritos(); //essa chamada vai tentar abrir uma conexão com o indexedDB
+
   txtJsonImportacao.value=''
   divImportacao.style.display='none'
 
