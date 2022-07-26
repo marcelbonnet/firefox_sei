@@ -644,6 +644,23 @@ function navegarEvento(direcao){
 
 document.getElementById("link_evento_anterior").addEventListener('click', function(btn_event){ navegarEvento(false); });
 document.getElementById("link_evento_posterior").addEventListener('click', function(btn_event){ navegarEvento(true); });
+document.getElementById("link_evento_favorito").addEventListener('click', function(btn_event){
+  let id = document.getElementById("lista_favorito").value
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("diario", 'readwrite');
+    const store = tx.objectStore("diario");
+    const req = store.get(parseInt(id))
+    req.onsuccess = function(event){
+      let dados = event.target.result
+      dados.favorito = 0
+      store.put(dados).onsuccess = function(event){
+        flash(`ID #${id} deixou de ser um favorito.`, SUCCESS)
+        carregarListaFavoritos();
+      }
+    }
+  };//indexedDB
+});
 document.getElementById("descricao").addEventListener('keyup', function(event){
   let desc = document.getElementById("descricao").value
   let max = document.getElementById("descricao").getAttribute('maxlength')
