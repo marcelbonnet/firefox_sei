@@ -532,7 +532,7 @@ function carregarDiarioParaEdicao(diario_id){
         req.onsuccess = function (cur_event) {
           let value = cur_event.target.result;
             diario_evento_id.value = value.id
-            data.value = value.data
+            data.value = datetime2date(new Date())
             atividade.value = value.atividade
             descricao.value = value.descricao
             num_sei.value = value.num_sei
