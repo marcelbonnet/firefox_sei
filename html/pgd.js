@@ -194,6 +194,16 @@ function formatarTempo(minutos, formato){
     horas = Math.trunc(minutos/(60))
     minutos = Math.trunc(((minutos/(60))-horas)*60)
     return `${horas<10? '0'+horas : horas}h${minutos<10? '0'+minutos : minutos}`
+  } else if(formato == "h min"){
+    //formato usado para a Análise encontrar a duração no texto da tabela do PGD para saber em qual linha da tabela fazer o preenchimento (vide main.js)
+    horas = Math.trunc(minutos/(60))
+    minutos = Math.trunc(((minutos/(60))-horas)*60)
+    texto = ""
+    if (horas > 0)
+      texto = `${horas}h` //sem "0" na frente quando horas<10
+    if (minutos > 0)
+      texto += `${horas>0? " " : ""}${minutos<10? '0'+minutos : minutos}min`
+    return texto
   } else
     return (minutos < 60)? minutos+" min" : minutos/60.0 + " h"
 }
@@ -735,7 +745,7 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
             sub_atividade: value.sub_atividade,
             descricao: value.descricao,
             codigo: value.duracao,
-            duracao_minutos: (value.duracao_minutos < 60)? value.duracao_minutos+"min" : value.duracao_minutos/60.0 + "h",
+            duracao_minutos: formatarTempo(value.duracao_minutos, "h min"),
             num_sei: value.num_sei,
             data: value.data,
           })
