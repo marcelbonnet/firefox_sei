@@ -1,0 +1,42 @@
+.icon {
+	padding-left: 25px;
+	background-repeat: no-repeat;
+	background-size: 16px 16px;
+}
+
+.icon-edit {
+	background-image: url(../images/pen.png);
+}
+.icon-fav {
+	background-image: url(../images/starw.png);
+}
+.icon-fav-true {
+	background-image: url(../images/star.png);
+}
+.icon-delete {
+	background-image: url(../images/bin.png);
+}
+.icon-import {
+	background-image: url(../images/import.png);
+}
+.icon-export {
+	background-image: url(../images/export.png);
+}
+.icon-anterior {
+	background-image: url(../images/previous.png);
+}
+.icon-proximo {
+	background-image: url(../images/next.png);
+}
+.icon-calendar {
+	background-image: url(../images/calendar.png);
+}
+.icon-analisar {
+	background-image: url(../images/pgd_analisar.png);
+}
+.icon-triar {
+	background-image: url(../images/pgd_triar.png);
+}
+.icon-add {
+	background-image: url(../images/add.png);
+}
