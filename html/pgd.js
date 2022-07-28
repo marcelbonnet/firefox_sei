@@ -3,7 +3,7 @@ var SUCCESS = 0;
 var WARN = 1;
 var ERROR = 2;
 
-const DB_VERSAO = 2
+const DB_VERSAO = 3
 
 
 if( typeof Element.prototype.clearChildren === 'undefined' ) {
@@ -167,6 +167,20 @@ function createOptionSelecione(){
   opt.value = ""
   opt.text = "Selecione"
   return opt
+}
+
+/* *****************************************************
+* Converte a data/hora para formato de data/hora SQL
+*******************************************************/
+function date2sqldate(d){
+  let dia = ( d.getDate() < 10 ) ? `0${d.getDate()}` : d.getDate()
+  let mes = ( d.getMonth()+1 < 10 ) ? `0${d.getMonth()+1}` : d.getMonth()+1
+  let ano = ( d.getFullYear() < 10 ) ? `0${d.getFullYear()}` : d.getFullYear()
+  let hora= ( d.getHours() < 10 ) ? `0${d.getHours()}` : d.getHours()
+  let min = ( d.getMinutes() < 10 ) ? `0${d.getMinutes()}` : d.getMinutes()
+  let seg = ( d.getSeconds() < 10 ) ? `0${d.getSeconds()}` : d.getSeconds()
+  
+  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg}`
 }
 
 function datetime2date(data){
@@ -1093,3 +1107,4 @@ document.getElementById("configAnaliseFila").addEventListener("change", function
     console.error(e)
   }
 })
+

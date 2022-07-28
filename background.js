@@ -5,7 +5,7 @@
 
 var db;
 
-const DB_VERSAO = 2
+const DB_VERSAO = 3
 
 function openDb() {
   console.log("openDb ...");
@@ -23,6 +23,9 @@ function openDb() {
     console.debug(evt);
     console.log(`Abrindo DB VERSÃO ${evt.target.result.version}. Antiga=${evt.oldVersion} Nova=${evt.newVersion}`);
 
+    /*******************************************
+     * V E R S Ã O  D O  S T O R A G E
+     * *****************************************/
     for(let versao=evt.oldVersion; versao < evt.newVersion; versao++){
       switch(versao){
         case 0:
@@ -64,6 +67,14 @@ function openDb() {
           console.log(`Atualizando DB para versão ${parseInt(versao)+1}`);
           evt.currentTarget.result.deleteObjectStore('eventos')
           evt.target.transaction.objectStore('diario').createIndex('diario_favorito', 'favorito', {unique:false})
+          break;
+        case 2:
+          var store = evt.currentTarget.result.createObjectStore(
+            "chamados", { keyPath: 'id', autoIncrement: true });
+          store.createIndex('ch_origem', 'origem', { unique: false });
+          store.createIndex('ch_numero', 'numero', { unique: false });
+          store.createIndex('ch_assunto', 'assunto', { unique: false });
+          store.createIndex('ch_contato', 'contato', { unique: false });
           break;
       }
     }
@@ -267,6 +278,66 @@ browser.runtime.onMessage.addListener( async(request, sender, sendResponse) =>
 });
 
 
+
+/* *****************************************************
+* Converte a data/hora para formato de data/hora SQL
+*******************************************************/
+function date2sqldate(d){
+  let dia = ( d.getDate() < 10 ) ? `0${d.getDate()}` : d.getDate()
+  let mes = ( d.getMonth()+1 < 10 ) ? `0${d.getMonth()+1}` : d.getMonth()+1
+  let ano = ( d.getFullYear() < 10 ) ? `0${d.getFullYear()}` : d.getFullYear()
+  let hora= ( d.getHours() < 10 ) ? `0${d.getHours()}` : d.getHours()
+  let min = ( d.getMinutes() < 10 ) ? `0${d.getMinutes()}` : d.getMinutes()
+  let seg = ( d.getSeconds() < 10 ) ? `0${d.getSeconds()}` : d.getSeconds()
+  
+  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg}`
+}
+
+/* ***************************************
+* Adiciona o chamado do Marval/Redmine ao meu PGD
+******************************************/
+function add_chamado_pgd(obj, origem){
+  console.debug(`Contato: ${obj.contato}`)
+  console.debug(`#${obj.numero}`)
+  console.debug(`Assunto: ${obj.assunto}`)
+
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("chamados", 'readwrite');
+    const store = tx.objectStore("chamados");
+    
+    let req = store.add({
+      numero: obj.numero,
+      origem: origem,
+      assunto: obj.assunto,
+      contato: obj.contato,
+      data: date2sqldate(new Date()) //log do dia/horário que acompanhei o chamado
+    });
+    req.onsuccess = function(evt) {
+      var key = evt.target.result;
+      // flash(`Chamado #${obj.numero} adicionado ao PGD`, SUCCESS)
+    };
+    req.onerror = function() {
+      // flash(document.getElementById('flash').textContent + ' ERR: ' + this.error, ERROR)
+    };
+  };//indexedDB
+
+}
+
+/* ***********************************************
+* ESCUTANDO MENSAGENS DE RUNTIME
+************************************************/
+browser.runtime.onMessage.addListener((message) => {
+  if (message.command === "marval_adicionar_chamado_pgd") {
+    console.debug(`Marval mandou ${message}`)
+    add_chamado_pgd(message, 'marval')
+  }
+});
+
+
+/* ***********************************************
+* PGD SGI
+************************************************/
 function inserirPgdGIDS(){
   var atividades = [
     ["Atividades Comuns - Atuar como Product Owner/Gestor de Solução de TI", "Administrar, conceber, planejar, discutir, acompanhar, avaliar, testar, homologar e demandar desenvolvimento."],
