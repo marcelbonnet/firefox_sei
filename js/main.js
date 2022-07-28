@@ -38,8 +38,8 @@
         opt.value = dados[i].codigo
         opt.text = dados[i].texto
         combo.add(opt)
+        frame.querySelector("#btnAdicionar").dispatchEvent(new Event('click'));
       }
-      frame.querySelector("#btnAdicionar").dispatchEvent(new Event('click'));
 
       // FIXME está causando erro de que faltou uma coluna ao submeter:
       // frame.querySelector("#btnSalvar").dispatchEvent(new Event('click'));
@@ -81,7 +81,7 @@
     // let sAtiv = "Atividades Comuns - Participar de reuniões e similares"
     // let sDur = "1h"
     // let sSub = "Participação em Reunião ou similares"
-
+    let analisados = []
     let trs = frame.querySelector("#tbAnalise").querySelectorAll("tr")
     for(di=0; di<dados.length; di++){
       console.debug(`=> ${di} : ${dados[di]}`)
@@ -92,14 +92,17 @@
         bSub = trs[trIndex].querySelectorAll("td")[2].textContent == dados[di].sub_atividade
         bVazio = trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value.length == 0
 
+        triagem_id = trs[trIndex].querySelectorAll("td")[5].querySelector("input").value
+
         console.debug(`=> TR${trIndex} Atividade: ${bAtiv}`)
         console.debug(`=> TR${trIndex} Duração (${dados[di].duracao_minutos}): ${bDur}`)
         console.debug(`=> TR${trIndex} Sub : ${bSub}`)
         console.debug(`=> TR${trIndex} Vazio: ${bVazio}`)
 
-        if(bAtiv && bSub && bDur && bVazio){
+        if(bAtiv && bSub && bDur && bVazio && !analisados.includes(triagem_id) ){
           trs[trIndex].querySelectorAll("td")[0].querySelector("input[type='checkbox']").dispatchEvent(new MouseEvent('click'))
           trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = (prefixarTextoComData)? `${formatarData(dados[di].data)} ${dados[di].descricao}` : `${dados[di].descricao}`
+          analisados.push(triagem_id)
           break
         }
       }

@@ -954,25 +954,25 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
           document.getElementById("table_diario").append(tr)
 
           // verificando se há "duração código" duplicado no período
-          let isAgrupado = false
-          for(let gi=0; gi<grupos.length; gi++){
-            if(grupos[gi].codigo == value.duracao || grupos[gi].codigo == null){
-              grupos[gi].codigo = value.duracao
-              grupos[gi].qtde+=1
-              grupos[gi].atividade=value.atividade_nome
-              grupos[gi].duracao_minutos=value.duracao_minutos
-              isAgrupado = true
-              break
-            } 
-          }
-          if(!isAgrupado){
-            grupos.push({
-                codigo: value.duracao,
-                qtde: 1,
-                atividade: value.atividade_nome,
-                duracao_minutos: value.duracao_minutos
-              })
-          }
+          // let isAgrupado = false
+          // for(let gi=0; gi<grupos.length; gi++){
+          //   if(grupos[gi].codigo == value.duracao || grupos[gi].codigo == null){
+          //     grupos[gi].codigo = value.duracao
+          //     grupos[gi].qtde+=1
+          //     grupos[gi].atividade=value.atividade_nome
+          //     grupos[gi].duracao_minutos=value.duracao_minutos
+          //     isAgrupado = true
+          //     break
+          //   } 
+          // }
+          // if(!isAgrupado){
+          //   grupos.push({
+          //       codigo: value.duracao,
+          //       qtde: 1,
+          //       atividade: value.atividade_nome,
+          //       duracao_minutos: value.duracao_minutos
+          //     })
+          // }
 
           total_horas+=value.duracao_minutos
           cursor.continue();
@@ -980,18 +980,18 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
       } else {
         document.getElementById("tab_diario_horas_total").textContent = formatarTempo(total_horas, "hhmm");
 
-        let avisar = false
-        let msg = "<strong>Atividade de mesma duração repetida!</strong><br>"
-        for(let i=0; i<grupos.length; i++){
-          if(grupos[i].qtde > 1){
-            avisar = true
-            msg += `${grupos[i].qtde} registros ${grupos[i].duracao_minutos}min/${grupos[i].atividade}<br>`
-            console.debug(msg)
-          }
-        }
-        msg += "<small>O SEI vai descartar essas horas!</small>"
-        if(avisar)
-          flash(`${msg}`, ERROR, true)
+        // let avisar = false
+        // let msg = "<strong>Atividade de mesma duração repetida!</strong><br>"
+        // for(let i=0; i<grupos.length; i++){
+        //   if(grupos[i].qtde > 1){
+        //     avisar = true
+        //     msg += `${grupos[i].qtde} registros ${grupos[i].duracao_minutos}min/${grupos[i].atividade}<br>`
+        //     console.debug(msg)
+        //   }
+        // }
+        // msg += "<small>O SEI vai descartar essas horas!</small>"
+        // if(avisar)
+        //   flash(`${msg}`, ERROR, true)
         
       }
     };
