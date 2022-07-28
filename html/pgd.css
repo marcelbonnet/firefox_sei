@@ -40,12 +40,12 @@ body * {
 	padding-left: 7px;
 }
 
-#table_diario {
+#table_diario, #table_chamados {
 	border-collapse: separate;
 	border-spacing: 10px;
 }
 
-#table_diario tr td {
+#table_diario tr td, #table_chamados tr td {
 	border-bottom: 1px solid #aaa;
 }
 
