@@ -75,6 +75,7 @@ function openDb() {
           store.createIndex('ch_numero', 'numero', { unique: false });
           store.createIndex('ch_assunto', 'assunto', { unique: false });
           store.createIndex('ch_contato', 'contato', { unique: false });
+          store.createIndex('ch_data', 'data', { unique: false });
           break;
       }
     }
