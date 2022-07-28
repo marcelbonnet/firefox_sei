@@ -183,11 +183,25 @@ function date2sqldate(d){
   return `${ano}-${mes}-${dia}T${hora}:${min}:${seg}`
 }
 
+/* *****************************************************
+* Usar para imprimir a data/hora em português
+@param {Date} d um Date()
+*******************************************************/
+function date2datahoraLocal(d){
+  let dia = ( d.getDate() < 10 ) ? `0${d.getDate()}` : d.getDate()
+  let mes = ( d.getMonth()+1 < 10 ) ? `0${d.getMonth()+1}` : d.getMonth()+1
+  let ano = ( d.getFullYear() < 10 ) ? `0${d.getFullYear()}` : d.getFullYear()
+  let hora= ( d.getHours() < 10 ) ? `0${d.getHours()}` : d.getHours()
+  let min = ( d.getMinutes() < 10 ) ? `0${d.getMinutes()}` : d.getMinutes()
+  let seg = ( d.getSeconds() < 10 ) ? `0${d.getSeconds()}` : d.getSeconds()
+  return `${dia}/${mes}/${ano} ${hora}:${min}`
+}
+
 function datetime2date(data){
   let a = data
   if((data instanceof Date) == false)
     a = new Date(data)
-  return a.toISOString().substring(0,a.toISOString().indexOf('T'))
+  return date2sqldate(a).substring(0,date2sqldate(a).indexOf('T'))
 }
 
 function hojeMinMax(desde, ate){
@@ -201,8 +215,8 @@ function hojeMinMax(desde, ate){
   ate.setMinutes(59)
   ate.setSeconds(59)
   return {
-    desde: desde.toISOString(),
-    ate: ate.toISOString()
+    desde: date2sqldate(desde),
+    ate: date2sqldate(ate)
     }
 }
 
@@ -814,7 +828,8 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
 });
 
 function inicializarAbaDiario(dispararEvento=false){
-  popularTabelaDiario(new Date(), new Date())
+  popularTabelaDiario(date2sqldate(new Date()), date2sqldate(new Date()))
+  popularTabelaChamados(date2sqldate(new Date()), date2sqldate(new Date()))
   document.getElementById('tab_diario_ini').value = datetime2date(new Date())
   document.getElementById('tab_diario_fim').value = datetime2date(new Date())
   if(dispararEvento){
@@ -838,6 +853,7 @@ document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(
     else
       return
     popularTabelaDiario(datas.desde, datas.ate)
+    popularTabelaChamados(datas.desde, datas.ate)
   });
 })
 
@@ -920,77 +936,77 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
       if (cursor) {
         // req = store.get(cursor.key);
         // req.onsuccess = function (cur_event) {
-          let value = cursor.value;
-          let tr = document.createElement("tr")
-          let p_data = document.createElement("p")
-          p_data.textContent=value.data
-          let td_data = document.createElement("td")
-          td_data.append(p_data)
-            let a_edit = document.createElement("a")
-            a_edit.setAttribute("class", "icon icon-edit")
-            a_edit.setAttribute("data-id", value.id)
-            a_edit.setAttribute('href','#')
-            a_edit.setAttribute('title','Editar')
-            a_edit.addEventListener('click', function(e){editarDiario(e)})
-          td_data.append(a_edit)
-            let a_fav = document.createElement("a")
-            if(value.favorito==undefined || value.favorito==0){
-              a_fav.setAttribute("class", "icon icon-fav")
-            } else {
-              a_fav.setAttribute("class", "icon icon-fav-true")
-            }
-            a_fav.setAttribute("data-id", value.id)
-            a_fav.setAttribute('href','#')
-            a_fav.setAttribute('title','Favoritar')
-            a_fav.addEventListener('click', function(e){favoritarDiario(e)})
-          td_data.append(a_fav)
-            let a_delete = document.createElement("a")
-            a_delete.setAttribute("class", "icon icon-delete")
-            a_delete.setAttribute("data-id", value.id)
-            a_delete.setAttribute('href','#')
-            a_delete.setAttribute('title','Remover')
-            a_delete.addEventListener('click', function(e){removerDiario(e)})
-          td_data.append(a_delete)
-          tr.append(td_data)
+        let value = cursor.value;
+        let tr = document.createElement("tr")
+        let p_data = document.createElement("p")
+        p_data.textContent=value.data
+        let td_data = document.createElement("td")
+        td_data.append(p_data)
+          let a_edit = document.createElement("a")
+          a_edit.setAttribute("class", "icon icon-edit")
+          a_edit.setAttribute("data-id", value.id)
+          a_edit.setAttribute('href','#')
+          a_edit.setAttribute('title','Editar')
+          a_edit.addEventListener('click', function(e){editarDiario(e)})
+        td_data.append(a_edit)
+          let a_fav = document.createElement("a")
+          if(value.favorito==undefined || value.favorito==0){
+            a_fav.setAttribute("class", "icon icon-fav")
+          } else {
+            a_fav.setAttribute("class", "icon icon-fav-true")
+          }
+          a_fav.setAttribute("data-id", value.id)
+          a_fav.setAttribute('href','#')
+          a_fav.setAttribute('title','Favoritar')
+          a_fav.addEventListener('click', function(e){favoritarDiario(e)})
+        td_data.append(a_fav)
+          let a_delete = document.createElement("a")
+          a_delete.setAttribute("class", "icon icon-delete")
+          a_delete.setAttribute("data-id", value.id)
+          a_delete.setAttribute('href','#')
+          a_delete.setAttribute('title','Remover')
+          a_delete.addEventListener('click', function(e){removerDiario(e)})
+        td_data.append(a_delete)
+        tr.append(td_data)
 
-          let td_duracao = document.createElement("td")
-          td_duracao.textContent = formatarTempo(value.duracao_minutos)
+        let td_duracao = document.createElement("td")
+        td_duracao.textContent = formatarTempo(value.duracao_minutos)
 
-          tr.append(td_duracao)
-          let p_ativ = document.createElement("p")
-          p_ativ.textContent = value.atividade_nome
-          let p_desc = document.createElement("small")
-          p_desc.textContent = value.descricao
-          let td_desc = document.createElement("td")
-          td_desc.append(p_ativ)
-          td_desc.append(p_desc)
-          tr.append(td_desc)
-          document.getElementById("table_diario").append(tr)
+        tr.append(td_duracao)
+        let p_ativ = document.createElement("p")
+        p_ativ.textContent = value.atividade_nome
+        let p_desc = document.createElement("small")
+        p_desc.textContent = value.descricao
+        let td_desc = document.createElement("td")
+        td_desc.append(p_ativ)
+        td_desc.append(p_desc)
+        tr.append(td_desc)
+        document.getElementById("table_diario").append(tr)
 
-          // verificando se há "duração código" duplicado no período
-          // let isAgrupado = false
-          // for(let gi=0; gi<grupos.length; gi++){
-          //   if(grupos[gi].codigo == value.duracao || grupos[gi].codigo == null){
-          //     grupos[gi].codigo = value.duracao
-          //     grupos[gi].qtde+=1
-          //     grupos[gi].atividade=value.atividade_nome
-          //     grupos[gi].duracao_minutos=value.duracao_minutos
-          //     isAgrupado = true
-          //     break
-          //   } 
-          // }
-          // if(!isAgrupado){
-          //   grupos.push({
-          //       codigo: value.duracao,
-          //       qtde: 1,
-          //       atividade: value.atividade_nome,
-          //       duracao_minutos: value.duracao_minutos
-          //     })
-          // }
+        // verificando se há "duração código" duplicado no período
+        // let isAgrupado = false
+        // for(let gi=0; gi<grupos.length; gi++){
+        //   if(grupos[gi].codigo == value.duracao || grupos[gi].codigo == null){
+        //     grupos[gi].codigo = value.duracao
+        //     grupos[gi].qtde+=1
+        //     grupos[gi].atividade=value.atividade_nome
+        //     grupos[gi].duracao_minutos=value.duracao_minutos
+        //     isAgrupado = true
+        //     break
+        //   } 
+        // }
+        // if(!isAgrupado){
+        //   grupos.push({
+        //       codigo: value.duracao,
+        //       qtde: 1,
+        //       atividade: value.atividade_nome,
+        //       duracao_minutos: value.duracao_minutos
+        //     })
+        // }
 
-          total_horas+=value.duracao_minutos
-          cursor.continue();
-        // };
+        total_horas+=value.duracao_minutos
+        cursor.continue();
+      // };
       } else {
         document.getElementById("tab_diario_horas_total").textContent = formatarTempo(total_horas, "hhmm");
 
@@ -1011,6 +1027,93 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
     };
   };//indexedDB
 }
+
+
+function popularTabelaChamados(iniSqlDate, fimSqlDate){
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("chamados", 'readonly');
+    let store = tx.objectStore("chamados");
+    store = store.index('ch_data')
+    const keyRange = IDBKeyRange.bound(iniSqlDate, fimSqlDate)
+    let req = store.openCursor(keyRange, "next");
+    
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        let value = cursor.value;
+        console.debug(`chamado ${value}`)
+        console.debug(`chamado ${value.id}`)
+        console.debug(`chamado ${value.data}`)
+        console.debug(`chamado ${value.numero}`)
+        console.debug(`chamado ${value.contato}`)
+        console.debug(`chamado ${value.assunto}`)
+        let tr = document.createElement("tr")
+        let p_data = document.createElement("p")
+        p_data.textContent= date2datahoraLocal(new Date(value.data))
+        let td_data = document.createElement("td")
+        td_data.append(p_data)
+        //   let a_edit = document.createElement("a")
+        //   a_edit.setAttribute("class", "icon icon-edit")
+        //   a_edit.setAttribute("data-id", value.id)
+        //   a_edit.setAttribute('href','#')
+        //   a_edit.setAttribute('title','Editar')
+        //   a_edit.addEventListener('click', function(e){editarDiario(e)})
+        // td_data.append(a_edit)
+        //   let a_fav = document.createElement("a")
+        //   if(value.favorito==undefined || value.favorito==0){
+        //     a_fav.setAttribute("class", "icon icon-fav")
+        //   } else {
+        //     a_fav.setAttribute("class", "icon icon-fav-true")
+        //   }
+        //   a_fav.setAttribute("data-id", value.id)
+        //   a_fav.setAttribute('href','#')
+        //   a_fav.setAttribute('title','Favoritar')
+        //   a_fav.addEventListener('click', function(e){favoritarDiario(e)})
+        // td_data.append(a_fav)
+        //   let a_delete = document.createElement("a")
+        //   a_delete.setAttribute("class", "icon icon-delete")
+        //   a_delete.setAttribute("data-id", value.id)
+        //   a_delete.setAttribute('href','#')
+        //   a_delete.setAttribute('title','Remover')
+        //   a_delete.addEventListener('click', function(e){removerDiario(e)})
+        // td_data.append(a_delete)
+        tr.append(td_data)
+
+        let td_origem = document.createElement("td")
+        td_origem.textContent = value.origem
+        tr.append(td_origem)
+
+        let td_chamado = document.createElement("td")
+        td_chamado.textContent = value.numero
+        tr.append(td_chamado)
+
+        let td_assunto = document.createElement("td")
+        td_assunto.textContent = value.assunto
+        tr.append(td_assunto)
+
+        let td_contato = document.createElement("td")
+        td_contato.textContent = value.contato
+        tr.append(td_contato)
+
+        document.getElementById("table_chamados").append(tr)
+        cursor.continue();
+      } 
+    };
+  };//indexedDB
+}
+
+
+
+
+
+
+
+
+/***********************
+  TAB CONFIG
+************************/
 
 document.getElementById("btn_importar").addEventListener('click', function(btn_event){
   let entrada = document.getElementById('divImportacao')
@@ -1063,10 +1166,6 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
   divImportacao.style.display='none'
 
 });
-
-/***********************
-  TAB CONFIG
-************************/
 document.getElementById("configInfoComplementares").addEventListener("change", function(){
   try{
     let storage = window.localStorage
