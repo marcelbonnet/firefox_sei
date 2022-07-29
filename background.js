@@ -316,6 +316,7 @@ function add_chamado_pgd(obj, origem){
     });
     req.onsuccess = function(evt) {
       var key = evt.target.result;
+      browser.runtime.sendMessage({ command: "chamados_mudou" });
       // flash(`Chamado #${obj.numero} adicionado ao PGD`, SUCCESS)
     };
     req.onerror = function() {

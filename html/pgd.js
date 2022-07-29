@@ -1030,11 +1030,16 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
 
 
 function popularTabelaChamados(iniSqlDate, fimSqlDate){
+  let tabela = document.getElementById("table_chamados")
+  
+  tabela.clearChildren();
+
   indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
     const idb = this.result;
     const tx = idb.transaction("chamados", 'readonly');
     let store = tx.objectStore("chamados");
     store = store.index('ch_data')
+    console.debug(`popularTabelaChamados de ${iniSqlDate} até ${fimSqlDate}`)
     const keyRange = IDBKeyRange.bound(iniSqlDate, fimSqlDate)
     let req = store.openCursor(keyRange, "next");
     
@@ -1097,14 +1102,51 @@ function popularTabelaChamados(iniSqlDate, fimSqlDate){
         td_contato.textContent = value.contato
         tr.append(td_contato)
 
-        document.getElementById("table_chamados").append(tr)
+        tabela.append(tr)
         cursor.continue();
       } 
     };
   };//indexedDB
 }
 
+/* ******************************
+* Popula a combo com os tipos
+* de origem existentes no DB
+* *******************************/
+function popularOrigemChamados(){
+  let combo = document.getElementById('origem_chamados')
+  
+  let origens = []
 
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("chamados", 'readonly');
+    let store = tx.objectStore("chamados");
+    let req = store.openCursor()
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          if(!origens.includes(value.origem))
+            origens.push(value.origem)
+        };
+        cursor.continue();
+      } else {
+        removeOptions(combo)
+        combo.add(createOptionSelecione())
+        for(i=0; i<origens.length; i++){
+          let opt = document.createElement("option")
+          opt.value = origens[i]
+          opt.text = origens[i]
+          combo.add(opt)
+        }
+      }
+    };
+  };//indexedDB
+  
+}
 
 
 
@@ -1207,3 +1249,15 @@ document.getElementById("configAnaliseFila").addEventListener("change", function
   }
 })
 
+
+/* ***********************************************
+* ESCUTANDO MENSAGENS DE RUNTIME
+* Só serão ouvidas quando o HTML do plugin
+* for exibido.
+************************************************/
+browser.runtime.onMessage.addListener((message) => {
+  if (message.command === "chamados_mudou") {
+    console.debug(`chamados_mudou: ${message}`)
+    popularOrigemChamados()
+  }
+});
