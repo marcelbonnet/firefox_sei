@@ -180,7 +180,7 @@ function date2sqldate(d){
   let min = ( d.getMinutes() < 10 ) ? `0${d.getMinutes()}` : d.getMinutes()
   let seg = ( d.getSeconds() < 10 ) ? `0${d.getSeconds()}` : d.getSeconds()
   
-  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg}`
+  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg}Z`
 }
 
 /* *****************************************************
@@ -204,9 +204,20 @@ function datetime2date(data){
   return date2sqldate(a).substring(0,date2sqldate(a).indexOf('T'))
 }
 
+// params: Date
 function hojeMinMax(desde, ate){
-  desde = desde instanceof Date ? desde : new Date(desde)
-  ate =  ate instanceof Date ? ate : new Date(ate)
+  // desde = desde instanceof Date ? desde : new Date(desde)
+  // ate =  ate instanceof Date ? ate : new Date(ate)
+
+  // desde = new Date(`${datetime2date(desde)}T00:00:00`)
+  // ate = new Date(`${datetime2date(ate)}T23:59:59`)
+
+  // desde = datetime2date(desde)
+  // ate = datetime2date(ate)
+  // console.debug(`DATAS: ${desde}/${ate} `)
+  // console.debug(desde.getTimezoneOffset())
+
+  
 
   desde.setHours(0)
   desde.setMinutes(0)
