@@ -841,6 +841,10 @@ document.getElementById("tab2").addEventListener('click', function(btn_event){
   inicializarAbaDiario(true);
 });
 
+document.getElementById("tab3").addEventListener('click', function(btn_event){
+  popularOrigemChamados();
+});
+
 document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(elem,index){
     elem.addEventListener('change', function(btn_event){
     let ini = document.getElementById('tab_diario_ini').value
