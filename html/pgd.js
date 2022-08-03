@@ -206,8 +206,8 @@ function datetime2date(data){
 
 // params: Date
 function hojeMinMax(desde, ate){
-  // desde = desde instanceof Date ? desde : new Date(desde)
-  // ate =  ate instanceof Date ? ate : new Date(ate)
+  desde = desde instanceof Date ? desde : new Date(desde)
+  ate =  ate instanceof Date ? ate : new Date(ate)
 
   // desde = new Date(`${datetime2date(desde)}T00:00:00`)
   // ate = new Date(`${datetime2date(ate)}T23:59:59`)
@@ -217,14 +217,14 @@ function hojeMinMax(desde, ate){
   // console.debug(`DATAS: ${desde}/${ate} `)
   // console.debug(desde.getTimezoneOffset())
 
-  
 
-  desde.setHours(0)
-  desde.setMinutes(0)
-  desde.setSeconds(0)
-  ate.setHours(23)
-  ate.setMinutes(59)
-  ate.setSeconds(59)
+
+  desde.setUTCHours(0)
+  desde.setUTCMinutes(0)
+  desde.setUTCSeconds(0)
+  ate.setUTCHours(23)
+  ate.setUTCMinutes(59)
+  ate.setUTCSeconds(59)
   return {
     desde: date2sqldate(desde),
     ate: date2sqldate(ate)
