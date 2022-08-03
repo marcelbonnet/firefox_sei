@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "SEI PGD",
-    "version": "1.6",
+    "version": "1.7",
     "homepage_url": "https://github.com/marcelbonnet/firefox_sei",
     "author" : "Marcel Bonnet",
     "description" : "Facita o preenchimento do Programa de Gestão de Desempenho do Governo Federal no Sistema de Processo Eletrônico (SEI).",
@@ -20,8 +20,9 @@
 
     "content_scripts": [
         {
-          "matches": ["*://*.sei.anatel.gov.br/*","*://*.seisu.anatel.gov.br/*"],
-          "js": ["js/sei_content.js"]
+          "matches": ["*://*.sei.anatel.gov.br/*","*://*.seisu.anatel.gov.br/*","*://*.visao.anatel.gov.br/*"],
+          "js": ["js/sei_content.js", "js/marval_content.js"],
+          "css": ["css/marval_content.css"]
         }
     ],
 
