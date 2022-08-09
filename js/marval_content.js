@@ -6,6 +6,9 @@
 /* ********************************
 *	Mantém a conexão
 ***********************************/
+// MarvalSoftware.UI.Controls.ScriptManager.getInstance().getControl("ctl00_cph_service")._selectedValue.value
+
+// MarvalSoftware.UI.Controls.ScriptManager.getInstance().getControl("ctl00_keepAlive")
 setInterval(async function(){
 	// document.querySelector("button[identifier]").dispatchEvent(new Event('click'))
 	await fetch("https://visao.anatel.gov.br/MSM/ScriptHandler.ashx?method=GetWorklist&classPath=%2FMSM%2FAjax%2FAjaxService.asmx&classMode=undefined", {
