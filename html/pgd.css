@@ -4,6 +4,21 @@ body * {
 	font-family: arial;
 }
 
+select {
+  max-width: 180px;
+  overflow: hidden;
+  white-space: pre;
+  text-overflow: ellipsis;
+}
+
+#atividade {
+	max-width: 240px !important;
+}
+
+option {
+  border: solid 1px #DDDDDD;
+}
+
 #flash {
 	padding: 10px;
 	border-radius: 7px;
