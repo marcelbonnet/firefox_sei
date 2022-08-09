@@ -144,9 +144,9 @@ function flash(msg, level, htmlFormat=false){
   console.debug(`class=${level}/${classe}`)
   document.getElementById("flash").setAttribute('class', classe)
   if(htmlFormat)
-    document.getElementById("flash").innerHTML = msg
+    document.getElementById("flash").innerHTML += msg
   else
-    document.getElementById("flash").textContent = msg
+    document.getElementById("flash").textContent += msg
 
   setTimeout(function(){
     document.getElementById("flash").setAttribute('class', 'flash-none')
@@ -615,53 +615,75 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
   let div = document.getElementById('divExportacao')
   div.style.display='block'
 
-  let saida = document.getElementById('txtJsonExportacao')
-  saida.value = ''
-
-  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
-    const idb = this.result;
-    const tx = idb.transaction("diario", 'readonly');
-    const store = tx.objectStore("diario");
-    let req = store.openCursor();
-    let dados = []
-    req.onsuccess = function(evt) {
-      var cursor = evt.target.result;
-      if (cursor) {
-        req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
-          dados.push(value);
-        };
-        cursor.continue();
-      } else {
-        saida.value = JSON.stringify(dados)
-      }
-    };
-  };//indexedDB
-
-  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
-    const idb = this.result;
-    const tx = idb.transaction("pgd_atividades", 'readonly');
-    const store = tx.objectStore("pgd_atividades");
-    let req = store.openCursor();
-    let dados = []
-    req.onsuccess = function(evt) {
-      var cursor = evt.target.result;
-      if (cursor) {
-        req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
-          dados.push(value);
-        };
-        cursor.continue();
-      } else {
-        // saida.value = saida.value + '\n' + JSON.stringify(dados)
-      }
-    };
-    
-  };//indexedDB
+  invocar_exportar_db()
 
 });
+
+async function invocar_exportar_db(){
+  let dump = {}
+  dump.chamados = await exportar_db_chamados()
+  dump.diario = await exportar_db_diario()
+  console.debug(`Dump: diario=${dump.diario.length} chamados=${dump.chamados.length}`)
+  let saida = document.getElementById('txtJsonExportacao')
+  saida.value = ''
+  saida.value = JSON.stringify(dump)
+}
+
+function exportar_db_diario(){
+  return new Promise((resolve, reject) => {
+    let result;
+    indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+      const idb = this.result;
+      const tx = idb.transaction("diario", 'readonly');
+      tx.oncomplete = _ => resolve(result);
+      tx.onerror = event => reject(event.target.error);
+      const store = tx.objectStore("diario");
+      let req = store.openCursor();
+      let dados = []
+      req.onsuccess = function(evt) {
+        var cursor = evt.target.result;
+        if (cursor) {
+          req = store.get(cursor.key);
+          req.onsuccess = function (cur_event) {
+            let value = cur_event.target.result;
+            dados.push(value);
+          };
+          cursor.continue();
+        } else {
+          result = dados;
+        }
+      };
+    };//indexedDB
+  });//Promise
+}
+
+function exportar_db_chamados(){
+  return new Promise((resolve, reject) => {
+    let result;
+    indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+      const idb = this.result;
+      const tx = idb.transaction("chamados", 'readonly');
+      tx.oncomplete = _ => resolve(result);
+      tx.onerror = event => reject(event.target.error);
+      const store = tx.objectStore("chamados");
+      let req = store.openCursor();
+      let dados = []
+      req.onsuccess = function(evt) {
+        var cursor = evt.target.result;
+        if (cursor) {
+          req = store.get(cursor.key);
+          req.onsuccess = function (cur_event) {
+            let value = cur_event.target.result;
+            dados.push(value);
+          };
+          cursor.continue();
+        } else {
+          result = dados;
+        }
+      };
+    };//indexedDB
+  });//Promise
+}
 
 
 function navegarEvento(direcao){
@@ -1202,17 +1224,38 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
     const tx = idb.transaction("diario", 'readwrite');
     const store = tx.objectStore("diario");
     
+    tx.oncomplete = _ => flash(`Inserido ${dados.diario.length} registros de diário. `, SUCCESS)
 
-    for(n in dados){
-      let obj = dados[n]
+    for(n in dados.diario){
+      let obj = dados.diario[n]
       delete obj.id
       let req = store.add(obj);
       req.onsuccess = function(evt) {
         var key = evt.target.result;
-        flash(`Inserido ${parseInt(n)+1} de ${dados.length} registros.`, SUCCESS)
       };
       req.onerror = function() {
-        flash(document.getElementById('flash').textContent + ' ERR: ' + this.error, ERROR)
+        flash('ERR: ' + this.error, ERROR)
+      };
+    } //fim for
+  };//indexedDB
+
+
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("chamados", 'readwrite');
+    const store = tx.objectStore("chamados");
+    
+    tx.oncomplete = _ => flash(`Inserido ${dados.chamados.length} chamados. `, SUCCESS)
+    
+    for(n in dados.chamados){
+      let obj = dados.chamados[n]
+      delete obj.id
+      let req = store.add(obj);
+      req.onsuccess = function(evt) {
+        var key = evt.target.result;
+      };
+      req.onerror = function() {
+        flash('ERR: ' + this.error, ERROR)
       };
     } //fim for
   };//indexedDB
