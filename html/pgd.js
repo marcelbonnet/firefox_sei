@@ -3,7 +3,7 @@ var SUCCESS = 0;
 var WARN = 1;
 var ERROR = 2;
 
-const DB_VERSAO = 2
+const DB_VERSAO = 3
 
 
 if( typeof Element.prototype.clearChildren === 'undefined' ) {
@@ -144,9 +144,9 @@ function flash(msg, level, htmlFormat=false){
   console.debug(`class=${level}/${classe}`)
   document.getElementById("flash").setAttribute('class', classe)
   if(htmlFormat)
-    document.getElementById("flash").innerHTML = msg
+    document.getElementById("flash").innerHTML += msg
   else
-    document.getElementById("flash").textContent = msg
+    document.getElementById("flash").textContent += msg
 
   setTimeout(function(){
     document.getElementById("flash").setAttribute('class', 'flash-none')
@@ -169,26 +169,65 @@ function createOptionSelecione(){
   return opt
 }
 
+/* *****************************************************
+* Converte a data/hora para formato de data/hora SQL
+*******************************************************/
+function date2sqldate(d){
+  let dia = ( d.getDate() < 10 ) ? `0${d.getDate()}` : d.getDate()
+  let mes = ( d.getMonth()+1 < 10 ) ? `0${d.getMonth()+1}` : d.getMonth()+1
+  let ano = ( d.getFullYear() < 10 ) ? `0${d.getFullYear()}` : d.getFullYear()
+  let hora= ( d.getHours() < 10 ) ? `0${d.getHours()}` : d.getHours()
+  let min = ( d.getMinutes() < 10 ) ? `0${d.getMinutes()}` : d.getMinutes()
+  let seg = ( d.getSeconds() < 10 ) ? `0${d.getSeconds()}` : d.getSeconds()
+  
+  return `${ano}-${mes}-${dia}T${hora}:${min}:${seg}Z`
+}
+
+/* *****************************************************
+* Usar para imprimir a data/hora em português
+@param {Date} d um Date()
+*******************************************************/
+function date2datahoraLocal(d){
+  let dia = ( d.getDate() < 10 ) ? `0${d.getDate()}` : d.getDate()
+  let mes = ( d.getMonth()+1 < 10 ) ? `0${d.getMonth()+1}` : d.getMonth()+1
+  let ano = ( d.getFullYear() < 10 ) ? `0${d.getFullYear()}` : d.getFullYear()
+  let hora= ( d.getHours() < 10 ) ? `0${d.getHours()}` : d.getHours()
+  let min = ( d.getMinutes() < 10 ) ? `0${d.getMinutes()}` : d.getMinutes()
+  let seg = ( d.getSeconds() < 10 ) ? `0${d.getSeconds()}` : d.getSeconds()
+  return `${dia}/${mes}/${ano} ${hora}:${min}`
+}
+
 function datetime2date(data){
   let a = data
   if((data instanceof Date) == false)
     a = new Date(data)
-  return a.toISOString().substring(0,a.toISOString().indexOf('T'))
+  return date2sqldate(a).substring(0,date2sqldate(a).indexOf('T'))
 }
 
+// params: Date
 function hojeMinMax(desde, ate){
   desde = desde instanceof Date ? desde : new Date(desde)
   ate =  ate instanceof Date ? ate : new Date(ate)
 
-  desde.setHours(0)
-  desde.setMinutes(0)
-  desde.setSeconds(0)
-  ate.setHours(23)
-  ate.setMinutes(59)
-  ate.setSeconds(59)
+  // desde = new Date(`${datetime2date(desde)}T00:00:00`)
+  // ate = new Date(`${datetime2date(ate)}T23:59:59`)
+
+  // desde = datetime2date(desde)
+  // ate = datetime2date(ate)
+  // console.debug(`DATAS: ${desde}/${ate} `)
+  // console.debug(desde.getTimezoneOffset())
+
+
+
+  desde.setUTCHours(0)
+  desde.setUTCMinutes(0)
+  desde.setUTCSeconds(0)
+  ate.setUTCHours(23)
+  ate.setUTCMinutes(59)
+  ate.setUTCSeconds(59)
   return {
-    desde: desde.toISOString(),
-    ate: ate.toISOString()
+    desde: date2sqldate(desde),
+    ate: date2sqldate(ate)
     }
 }
 
@@ -576,53 +615,75 @@ document.getElementById("btn_exportar").addEventListener('click', function(btn_e
   let div = document.getElementById('divExportacao')
   div.style.display='block'
 
-  let saida = document.getElementById('txtJsonExportacao')
-  saida.value = ''
-
-  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
-    const idb = this.result;
-    const tx = idb.transaction("diario", 'readonly');
-    const store = tx.objectStore("diario");
-    let req = store.openCursor();
-    let dados = []
-    req.onsuccess = function(evt) {
-      var cursor = evt.target.result;
-      if (cursor) {
-        req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
-          dados.push(value);
-        };
-        cursor.continue();
-      } else {
-        saida.value = JSON.stringify(dados)
-      }
-    };
-  };//indexedDB
-
-  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
-    const idb = this.result;
-    const tx = idb.transaction("pgd_atividades", 'readonly');
-    const store = tx.objectStore("pgd_atividades");
-    let req = store.openCursor();
-    let dados = []
-    req.onsuccess = function(evt) {
-      var cursor = evt.target.result;
-      if (cursor) {
-        req = store.get(cursor.key);
-        req.onsuccess = function (cur_event) {
-          let value = cur_event.target.result;
-          dados.push(value);
-        };
-        cursor.continue();
-      } else {
-        // saida.value = saida.value + '\n' + JSON.stringify(dados)
-      }
-    };
-    
-  };//indexedDB
+  invocar_exportar_db()
 
 });
+
+async function invocar_exportar_db(){
+  let dump = {}
+  dump.chamados = await exportar_db_chamados()
+  dump.diario = await exportar_db_diario()
+  console.debug(`Dump: diario=${dump.diario.length} chamados=${dump.chamados.length}`)
+  let saida = document.getElementById('txtJsonExportacao')
+  saida.value = ''
+  saida.value = JSON.stringify(dump)
+}
+
+function exportar_db_diario(){
+  return new Promise((resolve, reject) => {
+    let result;
+    indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+      const idb = this.result;
+      const tx = idb.transaction("diario", 'readonly');
+      tx.oncomplete = _ => resolve(result);
+      tx.onerror = event => reject(event.target.error);
+      const store = tx.objectStore("diario");
+      let req = store.openCursor();
+      let dados = []
+      req.onsuccess = function(evt) {
+        var cursor = evt.target.result;
+        if (cursor) {
+          req = store.get(cursor.key);
+          req.onsuccess = function (cur_event) {
+            let value = cur_event.target.result;
+            dados.push(value);
+          };
+          cursor.continue();
+        } else {
+          result = dados;
+        }
+      };
+    };//indexedDB
+  });//Promise
+}
+
+function exportar_db_chamados(){
+  return new Promise((resolve, reject) => {
+    let result;
+    indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+      const idb = this.result;
+      const tx = idb.transaction("chamados", 'readonly');
+      tx.oncomplete = _ => resolve(result);
+      tx.onerror = event => reject(event.target.error);
+      const store = tx.objectStore("chamados");
+      let req = store.openCursor();
+      let dados = []
+      req.onsuccess = function(evt) {
+        var cursor = evt.target.result;
+        if (cursor) {
+          req = store.get(cursor.key);
+          req.onsuccess = function (cur_event) {
+            let value = cur_event.target.result;
+            dados.push(value);
+          };
+          cursor.continue();
+        } else {
+          result = dados;
+        }
+      };
+    };//indexedDB
+  });//Promise
+}
 
 
 function navegarEvento(direcao){
@@ -800,7 +861,8 @@ document.getElementById("btn_sei_analise").addEventListener('click', function(bt
 });
 
 function inicializarAbaDiario(dispararEvento=false){
-  popularTabelaDiario(new Date(), new Date())
+  popularTabelaDiario(date2sqldate(new Date()), date2sqldate(new Date()))
+  popularTabelaChamados(date2sqldate(new Date()), date2sqldate(new Date()))
   document.getElementById('tab_diario_ini').value = datetime2date(new Date())
   document.getElementById('tab_diario_fim').value = datetime2date(new Date())
   if(dispararEvento){
@@ -810,6 +872,10 @@ function inicializarAbaDiario(dispararEvento=false){
 
 document.getElementById("tab2").addEventListener('click', function(btn_event){
   inicializarAbaDiario(true);
+});
+
+document.getElementById("tab3").addEventListener('click', function(btn_event){
+  popularOrigemChamados();
 });
 
 document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(elem,index){
@@ -824,6 +890,7 @@ document.querySelectorAll("input[name='tab_diario_pesquisa']").forEach(function(
     else
       return
     popularTabelaDiario(datas.desde, datas.ate)
+    popularTabelaChamados(datas.desde, datas.ate)
   });
 })
 
@@ -906,77 +973,77 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
       if (cursor) {
         // req = store.get(cursor.key);
         // req.onsuccess = function (cur_event) {
-          let value = cursor.value;
-          let tr = document.createElement("tr")
-          let p_data = document.createElement("p")
-          p_data.textContent=value.data
-          let td_data = document.createElement("td")
-          td_data.append(p_data)
-            let a_edit = document.createElement("a")
-            a_edit.setAttribute("class", "icon icon-edit")
-            a_edit.setAttribute("data-id", value.id)
-            a_edit.setAttribute('href','#')
-            a_edit.setAttribute('title','Editar')
-            a_edit.addEventListener('click', function(e){editarDiario(e)})
-          td_data.append(a_edit)
-            let a_fav = document.createElement("a")
-            if(value.favorito==undefined || value.favorito==0){
-              a_fav.setAttribute("class", "icon icon-fav")
-            } else {
-              a_fav.setAttribute("class", "icon icon-fav-true")
-            }
-            a_fav.setAttribute("data-id", value.id)
-            a_fav.setAttribute('href','#')
-            a_fav.setAttribute('title','Favoritar')
-            a_fav.addEventListener('click', function(e){favoritarDiario(e)})
-          td_data.append(a_fav)
-            let a_delete = document.createElement("a")
-            a_delete.setAttribute("class", "icon icon-delete")
-            a_delete.setAttribute("data-id", value.id)
-            a_delete.setAttribute('href','#')
-            a_delete.setAttribute('title','Remover')
-            a_delete.addEventListener('click', function(e){removerDiario(e)})
-          td_data.append(a_delete)
-          tr.append(td_data)
+        let value = cursor.value;
+        let tr = document.createElement("tr")
+        let p_data = document.createElement("p")
+        p_data.textContent=value.data
+        let td_data = document.createElement("td")
+        td_data.append(p_data)
+          let a_edit = document.createElement("a")
+          a_edit.setAttribute("class", "icon icon-edit")
+          a_edit.setAttribute("data-id", value.id)
+          a_edit.setAttribute('href','#')
+          a_edit.setAttribute('title','Editar')
+          a_edit.addEventListener('click', function(e){editarDiario(e)})
+        td_data.append(a_edit)
+          let a_fav = document.createElement("a")
+          if(value.favorito==undefined || value.favorito==0){
+            a_fav.setAttribute("class", "icon icon-fav")
+          } else {
+            a_fav.setAttribute("class", "icon icon-fav-true")
+          }
+          a_fav.setAttribute("data-id", value.id)
+          a_fav.setAttribute('href','#')
+          a_fav.setAttribute('title','Favoritar')
+          a_fav.addEventListener('click', function(e){favoritarDiario(e)})
+        td_data.append(a_fav)
+          let a_delete = document.createElement("a")
+          a_delete.setAttribute("class", "icon icon-delete")
+          a_delete.setAttribute("data-id", value.id)
+          a_delete.setAttribute('href','#')
+          a_delete.setAttribute('title','Remover')
+          a_delete.addEventListener('click', function(e){removerDiario(e)})
+        td_data.append(a_delete)
+        tr.append(td_data)
 
-          let td_duracao = document.createElement("td")
-          td_duracao.textContent = formatarTempo(value.duracao_minutos)
+        let td_duracao = document.createElement("td")
+        td_duracao.textContent = formatarTempo(value.duracao_minutos)
 
-          tr.append(td_duracao)
-          let p_ativ = document.createElement("p")
-          p_ativ.textContent = value.atividade_nome
-          let p_desc = document.createElement("small")
-          p_desc.textContent = value.descricao
-          let td_desc = document.createElement("td")
-          td_desc.append(p_ativ)
-          td_desc.append(p_desc)
-          tr.append(td_desc)
-          document.getElementById("table_diario").append(tr)
+        tr.append(td_duracao)
+        let p_ativ = document.createElement("p")
+        p_ativ.textContent = value.atividade_nome
+        let p_desc = document.createElement("small")
+        p_desc.textContent = value.descricao
+        let td_desc = document.createElement("td")
+        td_desc.append(p_ativ)
+        td_desc.append(p_desc)
+        tr.append(td_desc)
+        document.getElementById("table_diario").append(tr)
 
-          // verificando se há "duração código" duplicado no período
-          // let isAgrupado = false
-          // for(let gi=0; gi<grupos.length; gi++){
-          //   if(grupos[gi].codigo == value.duracao || grupos[gi].codigo == null){
-          //     grupos[gi].codigo = value.duracao
-          //     grupos[gi].qtde+=1
-          //     grupos[gi].atividade=value.atividade_nome
-          //     grupos[gi].duracao_minutos=value.duracao_minutos
-          //     isAgrupado = true
-          //     break
-          //   } 
-          // }
-          // if(!isAgrupado){
-          //   grupos.push({
-          //       codigo: value.duracao,
-          //       qtde: 1,
-          //       atividade: value.atividade_nome,
-          //       duracao_minutos: value.duracao_minutos
-          //     })
-          // }
+        // verificando se há "duração código" duplicado no período
+        // let isAgrupado = false
+        // for(let gi=0; gi<grupos.length; gi++){
+        //   if(grupos[gi].codigo == value.duracao || grupos[gi].codigo == null){
+        //     grupos[gi].codigo = value.duracao
+        //     grupos[gi].qtde+=1
+        //     grupos[gi].atividade=value.atividade_nome
+        //     grupos[gi].duracao_minutos=value.duracao_minutos
+        //     isAgrupado = true
+        //     break
+        //   } 
+        // }
+        // if(!isAgrupado){
+        //   grupos.push({
+        //       codigo: value.duracao,
+        //       qtde: 1,
+        //       atividade: value.atividade_nome,
+        //       duracao_minutos: value.duracao_minutos
+        //     })
+        // }
 
-          total_horas+=value.duracao_minutos
-          cursor.continue();
-        // };
+        total_horas+=value.duracao_minutos
+        cursor.continue();
+      // };
       } else {
         document.getElementById("tab_diario_horas_total").textContent = formatarTempo(total_horas, "hhmm");
 
@@ -997,6 +1064,135 @@ function popularTabelaDiario(desde_iso_str, ate_iso_str){
     };
   };//indexedDB
 }
+
+
+function popularTabelaChamados(iniSqlDate, fimSqlDate){
+  let tabela = document.getElementById("table_chamados")
+  
+  tabela.clearChildren();
+
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("chamados", 'readonly');
+    let store = tx.objectStore("chamados");
+    store = store.index('ch_data')
+    console.debug(`popularTabelaChamados de ${iniSqlDate} até ${fimSqlDate}`)
+    const keyRange = IDBKeyRange.bound(iniSqlDate, fimSqlDate)
+    let req = store.openCursor(keyRange, "next");
+    
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        let value = cursor.value;
+        console.debug(`chamado ${value}`)
+        console.debug(`chamado ${value.id}`)
+        console.debug(`chamado ${value.data}`)
+        console.debug(`chamado ${value.numero}`)
+        console.debug(`chamado ${value.contato}`)
+        console.debug(`chamado ${value.assunto}`)
+        let tr = document.createElement("tr")
+        let p_data = document.createElement("p")
+        p_data.textContent= date2datahoraLocal(new Date(value.data))
+        let td_data = document.createElement("td")
+        td_data.append(p_data)
+        //   let a_edit = document.createElement("a")
+        //   a_edit.setAttribute("class", "icon icon-edit")
+        //   a_edit.setAttribute("data-id", value.id)
+        //   a_edit.setAttribute('href','#')
+        //   a_edit.setAttribute('title','Editar')
+        //   a_edit.addEventListener('click', function(e){editarDiario(e)})
+        // td_data.append(a_edit)
+        //   let a_fav = document.createElement("a")
+        //   if(value.favorito==undefined || value.favorito==0){
+        //     a_fav.setAttribute("class", "icon icon-fav")
+        //   } else {
+        //     a_fav.setAttribute("class", "icon icon-fav-true")
+        //   }
+        //   a_fav.setAttribute("data-id", value.id)
+        //   a_fav.setAttribute('href','#')
+        //   a_fav.setAttribute('title','Favoritar')
+        //   a_fav.addEventListener('click', function(e){favoritarDiario(e)})
+        // td_data.append(a_fav)
+        //   let a_delete = document.createElement("a")
+        //   a_delete.setAttribute("class", "icon icon-delete")
+        //   a_delete.setAttribute("data-id", value.id)
+        //   a_delete.setAttribute('href','#')
+        //   a_delete.setAttribute('title','Remover')
+        //   a_delete.addEventListener('click', function(e){removerDiario(e)})
+        // td_data.append(a_delete)
+        tr.append(td_data)
+
+        let td_origem = document.createElement("td")
+        td_origem.textContent = value.origem
+        tr.append(td_origem)
+
+        let td_chamado = document.createElement("td")
+        td_chamado.textContent = value.numero
+        tr.append(td_chamado)
+
+        let td_assunto = document.createElement("td")
+        td_assunto.textContent = value.assunto
+        tr.append(td_assunto)
+
+        let td_contato = document.createElement("td")
+        td_contato.textContent = value.contato
+        tr.append(td_contato)
+
+        tabela.append(tr)
+        cursor.continue();
+      } 
+    };
+  };//indexedDB
+}
+
+/* ******************************
+* Popula a combo com os tipos
+* de origem existentes no DB
+* *******************************/
+function popularOrigemChamados(){
+  let combo = document.getElementById('origem_chamados')
+  
+  let origens = []
+
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("chamados", 'readonly');
+    let store = tx.objectStore("chamados");
+    let req = store.openCursor()
+    req.onsuccess = function(evt) {
+      var cursor = evt.target.result;
+      if (cursor) {
+        req = store.get(cursor.key);
+        req.onsuccess = function (cur_event) {
+          let value = cur_event.target.result;
+          if(!origens.includes(value.origem))
+            origens.push(value.origem)
+        };
+        cursor.continue();
+      } else {
+        removeOptions(combo)
+        combo.add(createOptionSelecione())
+        for(i=0; i<origens.length; i++){
+          let opt = document.createElement("option")
+          opt.value = origens[i]
+          opt.text = origens[i]
+          combo.add(opt)
+        }
+      }
+    };
+  };//indexedDB
+  
+}
+
+
+
+
+
+
+/***********************
+  TAB CONFIG
+************************/
 
 document.getElementById("btn_importar").addEventListener('click', function(btn_event){
   let entrada = document.getElementById('divImportacao')
@@ -1028,17 +1224,38 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
     const tx = idb.transaction("diario", 'readwrite');
     const store = tx.objectStore("diario");
     
+    tx.oncomplete = _ => flash(`Inserido ${dados.diario.length} registros de diário. `, SUCCESS)
 
-    for(n in dados){
-      let obj = dados[n]
+    for(n in dados.diario){
+      let obj = dados.diario[n]
       delete obj.id
       let req = store.add(obj);
       req.onsuccess = function(evt) {
         var key = evt.target.result;
-        flash(`Inserido ${parseInt(n)+1} de ${dados.length} registros.`, SUCCESS)
       };
       req.onerror = function() {
-        flash(document.getElementById('flash').textContent + ' ERR: ' + this.error, ERROR)
+        flash('ERR: ' + this.error, ERROR)
+      };
+    } //fim for
+  };//indexedDB
+
+
+  indexedDB.open("pgd",DB_VERSAO).onsuccess = function (evt) {
+    const idb = this.result;
+    const tx = idb.transaction("chamados", 'readwrite');
+    const store = tx.objectStore("chamados");
+    
+    tx.oncomplete = _ => flash(`Inserido ${dados.chamados.length} chamados. `, SUCCESS)
+    
+    for(n in dados.chamados){
+      let obj = dados.chamados[n]
+      delete obj.id
+      let req = store.add(obj);
+      req.onsuccess = function(evt) {
+        var key = evt.target.result;
+      };
+      req.onerror = function() {
+        flash('ERR: ' + this.error, ERROR)
       };
     } //fim for
   };//indexedDB
@@ -1049,10 +1266,6 @@ document.getElementById("btn_importar_salvar").addEventListener('click', functio
   divImportacao.style.display='none'
 
 });
-
-/***********************
-  TAB CONFIG
-************************/
 document.getElementById("configInfoComplementares").addEventListener("change", function(){
   try{
     let storage = window.localStorage
@@ -1093,3 +1306,16 @@ document.getElementById("configAnaliseFila").addEventListener("change", function
     console.error(e)
   }
 })
+
+
+/* ***********************************************
+* ESCUTANDO MENSAGENS DE RUNTIME
+* Só serão ouvidas quando o HTML do plugin
+* for exibido.
+************************************************/
+browser.runtime.onMessage.addListener((message) => {
+  if (message.command === "chamados_mudou") {
+    console.debug(`chamados_mudou: ${message}`)
+    popularOrigemChamados()
+  }
+});

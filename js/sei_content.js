@@ -1,1 +1,1 @@
-// remover.
+// placeholder caso queira adicionar itens na página do SEI

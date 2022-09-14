@@ -43,6 +43,8 @@
           </tr>
         </table>
 
+        <table id="table_chamados"></table>
+        <hr color="darkred">
         <table id="table_diario"></table>
       </div> <!-- fim da div tab content -->
     </div> <!-- fim da tab -->
@@ -93,6 +95,10 @@
           <tr>
             <th>Descrição</th>
             <td>
+              <p>
+                <select id="origem_chamados"></select>
+                <input type="button" id="btn_incluir_chamado_diario" class="icon icon-add" value="Chamados do Dia">
+              </p>
               <textarea id="descricao" rows="5" cols="40"></textarea>
               <p><small><span id="descricao_count"></span> caracteres.</small></p>
             </td>
