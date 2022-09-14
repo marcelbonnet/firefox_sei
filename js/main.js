@@ -83,29 +83,58 @@
     // let sSub = "Participação em Reunião ou similares"
     let analisados = []
     let trs = frame.querySelector("#tbAnalise").querySelectorAll("tr")
-    for(di=0; di<dados.length; di++){
+
+    let td_grupos = [] //index de cada novo grupo de atividade
+    for(i=0; i<trs.length; i++){
+      if(trs[i].classList.contains("table-success"))
+        td_grupos.push(i)
+    }
+
+    console.debug(td_grupos)
+
+    for (di=0; di<dados.length; di++){
       console.debug(`=> ${di} : ${dados[di]}`)
-      // pular o TH ou vai dar pau de undefined
-      for(trIndex=1; trIndex < trs.length; trIndex++){
-        bAtiv = trs[trIndex].querySelectorAll("td")[1].textContent.indexOf(dados[di].atividade) == 0 //string exata
-        bDur = (trs[trIndex].querySelectorAll("td")[1].textContent.match(new RegExp(`${dados[di].duracao_minutos}$`)) != null)
-        bSub = trs[trIndex].querySelectorAll("td")[2].textContent == dados[di].sub_atividade
-        bVazio = trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value.length == 0
+      
+      for (trGrupo=0; trGrupo < td_grupos.length; trGrupo++){
+        let proximo_index = td_grupos[trGrupo+1];
+        // if (td_grupos == td_grupos.length-1){
+        //   proximo_index = trs.length
+        // } else {
+        //   proximo_index = td_grupos[trGrupo+1]
+        // }
 
-        triagem_id = trs[trIndex].querySelectorAll("td")[5].querySelector("input").value
+        if(proximo_index === undefined)
+          proximo_index = trs.length        
 
-        console.debug(`=> TR${trIndex} Atividade: ${bAtiv}`)
-        console.debug(`=> TR${trIndex} Duração (${dados[di].duracao_minutos}): ${bDur}`)
-        console.debug(`=> TR${trIndex} Sub : ${bSub}`)
-        console.debug(`=> TR${trIndex} Vazio: ${bVazio}`)
+        bAtiv = trs[td_grupos[trGrupo]].querySelectorAll("td")[0].textContent.indexOf(` ${dados[di].atividade} `) == 0 //string exata
+        console.debug(proximo_index)
+        for (trIndex=td_grupos[trGrupo]+1; trIndex < proximo_index; trIndex++){
+          bDur = (trs[trIndex].querySelectorAll("td")[1].textContent.match(new RegExp(`${dados[di].duracao_minutos}$`)) != null)
+          bSub = trs[trIndex].querySelectorAll("td")[2].textContent == dados[di].sub_atividade
+          bVazio = trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value.length == 0
 
-        if(bAtiv && bSub && bDur && bVazio && !analisados.includes(triagem_id) ){
-          trs[trIndex].querySelectorAll("td")[0].querySelector("input[type='checkbox']").dispatchEvent(new MouseEvent('click'))
-          trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = (prefixarTextoComData)? `${formatarData(dados[di].data)} ${dados[di].descricao}` : `${dados[di].descricao}`
-          analisados.push(triagem_id)
-          break
-        }
-      }
+          triagem_id = trs[trIndex].querySelectorAll("td")[5].querySelector("input").value
+
+          // if(bAtiv){
+          //   console.debug(`=> TR${trIndex} Atividade: ${bAtiv}`)
+          //   console.debug(`=> TR${trIndex} Duração (${dados[di].duracao_minutos}): ${bDur}`)
+          //   console.debug(`=> TR${trIndex} Sub : ${bSub}`)
+          //   console.debug(`=> TR${trIndex} Vazio: ${bVazio}`)
+          // }
+
+          if(bAtiv && bSub && bDur && bVazio && !analisados.includes(triagem_id) ){
+            trs[trIndex].querySelectorAll("td")[0].querySelector("input[type='checkbox']").dispatchEvent(new MouseEvent('click'))
+            trs[trIndex].querySelectorAll("td")[4].querySelector("textarea").value = (prefixarTextoComData)? `${formatarData(dados[di].data)} ${dados[di].descricao}` : `${dados[di].descricao}`
+            analisados.push(triagem_id)
+            // console.debug(analisados)
+            // console.debug(triagem_id)
+            di++; 
+            break;
+          }
+
+        } // fim for trIndex
+
+      } // fim for trGrupo
     }
 
     // frame = document.querySelector("iframe#ifrVisualizacao").contentWindow.document.body.querySelector("#tbAnalise").querySelectorAll("tr")[1].textContent.indexOf('vidades')
