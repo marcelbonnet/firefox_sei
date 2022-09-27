@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "SEI PGD",
-    "version": "1.12",
+    "version": "1.13",
     "homepage_url": "https://github.com/marcelbonnet/firefox_sei",
     "author" : "Marcel Bonnet",
     "description" : "Facita o preenchimento do Programa de Gestão de Desempenho do Governo Federal no Sistema de Processo Eletrônico (SEI).",
